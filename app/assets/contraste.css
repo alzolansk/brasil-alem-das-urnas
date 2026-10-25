@@ -1,0 +1,8 @@
+:root { --bg: #000; --text: #fff; --navy: #fff; --blue: #7FB2FF; --green: #6FE39A; --yellow: #FFE14D; --orange: #FF9A73; --gray: #D1D5DB; --bg-soft: #111; --border: #fff; --muted: #E5E7EB; }
+.stApp, .stApp p, .stApp label, .stApp span, .stApp li, .stApp div { color: #fff; }
+.stApp { background: #000; }
+.escuro { background: #000; border: 2px solid #fff; }
+.rodape { background: #000; border-top: 2px solid #fff; }
+.selo { background: #000; color: #FFE14D; border-color: #FFE14D; }
+.barra span { color: #000; }
+[data-baseweb="select"] > div, input { background: #111 !important; color: #fff !important; }

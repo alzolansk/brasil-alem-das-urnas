@@ -38,4 +38,4 @@ streamlit run app/Home.py
 ```
 
 ## Status
-Fases 0-2 concluídas (ingestão e modelagem; conferência com o TSE pendente). Ver [docs/planejamento.md](docs/planejamento.md). Plano e decisões pendentes em [docs/metodologia.md](docs/metodologia.md).
+Fases 0-2 concluídas; Fase 3 (app) implementada, com aprovação visual e testes com pessoas pendentes. Ver [docs/planejamento.md](docs/planejamento.md). Plano e decisões pendentes em [docs/metodologia.md](docs/metodologia.md).
