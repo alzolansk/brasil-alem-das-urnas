@@ -1,0 +1,10 @@
+# Cores extraídas do protótipo 2 (ver docs/design/tokens.md)
+[theme]
+base = "light"
+primaryColor = "#1550A8"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F5F7FA"
+textColor = "#0B1F45"
+
+[client]
+toolbarMode = "minimal"

@@ -1,0 +1,6 @@
+# Ingestão (TSE/IBGE) e carga no BigQuery Sandbox.
+-r requirements.txt
+requests>=2.32
+pyyaml>=6.0
+google-cloud-bigquery>=3.25
+db-dtypes>=1.3

@@ -1,0 +1,7 @@
+# Dependências do app (usadas pelo Streamlit Community Cloud).
+# O app lê apenas data/marts/*.parquet e não precisa de credencial GCP.
+streamlit>=1.40
+plotly>=5.24
+pandas>=2.2
+pyarrow>=17.0
+unidecode>=1.3

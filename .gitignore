@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Credenciais e configuração local
+.env
+*.json.key
+service-account*.json
+.streamlit/secrets.toml
+
+# Dados brutos do TSE/IBGE (grandes; recriados por ingestion/download.py)
+data/raw/*
+!data/raw/.gitkeep
+
+# Editor / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Intermediários da ingestão (recriados por ingestion/pipeline.py)
+data/interim/

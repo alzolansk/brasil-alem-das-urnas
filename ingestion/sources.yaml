@@ -1,0 +1,44 @@
+# Fontes de dados do pipeline.
+# `arquivo_local`: se existir, é usado no lugar do download (data/raw/ não vai para o git).
+# Leiame de cada conjunto: docs/fontes/tse/
+
+tse:
+  detalhe_votacao_munzona:
+    leiame: docs/fontes/tse/leiame_detalhe_votacao_munzona_2022.pdf  # o mesmo PDF vem nos zips de 2022 e 2026
+    arquivo_csv: "detalhe_votacao_munzona_{ano}_BRASIL.csv"           # dentro do zip: arquivo nacional (soma das UFs + ZZ)
+    encoding: latin-1
+    separador: ";"
+    2022:
+      url: "https://cdn.tse.jus.br/estatistica/sead/odsele/detalhe_votacao_munzona/detalhe_votacao_munzona_2022.zip"
+      arquivo_local: data/raw/tse/detalhe_votacao_munzona/2022/detalhe_votacao_munzona_2022.zip
+      turnos: [1, 2]
+      notas: >-
+        Presidente: CD_ELEICAO 544 (1º turno) e 545 (2º turno). 6.283 linhas por turno (município × zona),
+        5.570 municípios + exterior (SG_UF = ZZ). Sem voto em trânsito, sem anulados e sem nulos técnicos.
+        Arquivo gerado em 24/10/2026 (DT_GERACAO), após retotalizações.
+    2026:
+      url: "https://cdn.tse.jus.br/estatistica/sead/odsele/detalhe_votacao_munzona/detalhe_votacao_munzona_2026.zip"
+      arquivo_local: data/raw/tse/detalhe_votacao_munzona/2026/detalhe_votacao_munzona_2026.zip
+      turnos: [1]    # acrescentar 2 após a publicação oficial do 2º turno (tarefa 4.1)
+      notas: >-
+        Mesmas 47 colunas de 2022. Presidente: CD_ELEICAO 6257 (1º turno), 6.292 linhas, 5.571 municípios
+        (novo: Boa Esperança do Norte/MT, código TSE 73709). Tem 5.246 nulos técnicos
+        (QT_VOTOS_NULOS_TECNICOS), já incluídos em QT_TOTAL_VOTOS_NULOS.
+
+  municipio_tse_ibge:
+    url: "https://cdn.tse.jus.br/estatistica/sead/odsele/municipio_tse_ibge/municipio_tse_ibge.zip"
+    pagina: "https://dadosabertos.tse.jus.br/dataset/codigos-oficiais-de-uf-e-municipios-segundo-o-tse-e-o-ibge"
+    notas: "Correspondência oficial código TSE ↔ código IBGE. Juntar sempre por código, nunca por nome (6 municípios mudaram de grafia entre 2022 e 2026)."
+
+ibge:
+  municipios:
+    url: "https://servicodados.ibge.gov.br/api/v1/localidades/municipios"   # JSON: código, nome, UF, região
+    pagina: "https://www.ibge.gov.br/explica/codigos-dos-municipios.php"
+  malha_municipal:
+    # GeoJSON por UF (propriedade `codarea` = código IBGE). Um arquivo por UF, para o mapa municipal da UF selecionada.
+    url: "https://servicodados.ibge.gov.br/api/v3/malhas/estados/{uf}?formato=application/vnd.geo+json&intrarregiao=municipio&qualidade=minima"
+    pagina: "https://www.ibge.gov.br/geociencias/organizacao-do-territorio/malhas-territoriais/15774-malhas.html"
+
+filtros:
+  cargo: "Presidente"   # valor exato de DS_CARGO
+  excluir_uf: ["ZZ"]    # exterior: fora do mapa e da média "Brasil"; mostrado à parte (docs/metodologia.md)
