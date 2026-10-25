@@ -46,3 +46,13 @@ h1, h2, h3, .titulo, .numero { color: #fff !important; }
 .st-key-e100_ano [role="radiogroup"] label:has(input:checked) { background: var(--yellow); }
 .st-key-e100_ano [role="radiogroup"] label:has(input:checked) p { color: #000 !important; }
 .st-key-e100_ano label p { color: var(--yellow) !important; }
+/* Quem ficou em casa? */
+.st-key-abstencao_idade, .st-key-abstencao_historico { background: #000; border-color: #fff; }
+:is(.st-key-abstencao_eleicao, .st-key-abstencao_ordem, .st-key-abstencao_hist_dim) [role="radiogroup"] { background: #000; border-color: var(--yellow); }
+:is(.st-key-abstencao_eleicao, .st-key-abstencao_ordem, .st-key-abstencao_hist_dim) [role="radiogroup"] label:has(input:checked) { background: var(--yellow); }
+:is(.st-key-abstencao_eleicao, .st-key-abstencao_ordem, .st-key-abstencao_hist_dim) [role="radiogroup"] label:has(input:checked) p { color: #000 !important; }
+:is(.st-key-abstencao_eleicao, .st-key-abstencao_ordem, .st-key-abstencao_hist_dim) label p { color: var(--yellow) !important; }
+.barra-g::after, .traco-media { border-left-color: #fff; }
+.grupos .val, .grupos .nome, .nota-metodo li b { color: #fff !important; }
+.tag-grupo { background: #000; color: var(--yellow) !important; border: 1px solid var(--yellow); }
+.grupos .pequena .barra-g > i { opacity: .6; }

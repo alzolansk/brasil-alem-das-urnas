@@ -26,6 +26,7 @@
   | **Explore seu município** | Comparecimento, abstenção e distribuição dos votos, com contexto em relação ao estado e ao Brasil. |
   | **Sua cidade em 100 eleitores** | O eleitorado representado por 100 pontos: votos válidos, brancos, nulos e quem não compareceu. |
   | **Comparativo 2022 × 2026** | O que mudou entre os anos e entre os turnos disponíveis, com diferenças de taxas em pontos percentuais. |
+  | **Quem ficou em casa?** | A abstenção por faixa etária, gênero e escolaridade, com o tamanho de cada grupo, a variação 2022 → 2026 e frases automáticas em “O que os dados revelam?”. |
   | **Mapa eleitoral** | Estados e municípios por indicador, com filtro de região, detalhes do local selecionado e alternativa em lista ordenada. |
   | **Brasil em perspectiva** | Município, estado e Brasil lado a lado, indicador a indicador, incluindo a evolução entre os anos. |
 
@@ -82,10 +83,12 @@
   Algumas escolhas orientam todas as comparações:
 
   - **Totais ponderados:** taxas de estado e Brasil são calculadas pela soma dos numeradores dividida pela soma das bases correspondentes, nunca pela média simples das taxas municipais.
-  - **Recorte territorial:** o exterior fica fora do mapa e das comparações entre município, estado e Brasil. Na conferência com os totais oficiais do TSE, ele é incluído.
+  - **Recorte territorial:** o exterior fica fora do mapa e dos municípios, mas entra no total do Brasil (indicado no app como "Brasil + Exterior"), como no total oficial do TSE.
   - **Comparação histórica:** diferenças entre anos são calculadas no nível municipal. Zonas eleitorais não são comparadas entre anos, pois podem ser reorganizadas.
   - **Municípios novos:** Boa Esperança do Norte (MT), por exemplo, não tem resultado municipal de 2022; o app sinaliza essa ausência.
   - **Interpretação:** os dados descrevem a participação agregada. Não explicam as razões individuais do voto ou da abstenção.
+
+  A seção **Quem ficou em casa?** usa outro conjunto do TSE, o perfil de comparecimento e abstenção (`perfil_comparecimento_abstencao`), agregado por município e por característica do eleitor em `data/marts/mart_perfil_abstencao.parquet` com `python -m scripts.perfil_abstencao`, sem BigQuery. Os indicadores descrevem grupos agregados, nunca pessoas, e mostram uma característica por vez. Fórmulas, categorias e a diferença de cobertura para os resultados por seção estão na [metodologia](docs/metodologia.md#quem-ficou-em-casa-abstenção-por-perfil-do-eleitor).
 
   Consulte as [fórmulas e decisões metodológicas](docs/metodologia.md), o [registro de validação](docs/validacao.md) e as [fontes configuradas no pipeline](ingestion/sources.yaml).
 
@@ -178,7 +181,7 @@
   |---|---|
   | Ingestão, modelagem e exportação | Implementadas, com evidências de validação documentadas. |
   | Base disponível no repositório | 2022: 1º e 2º turnos. 2026: 1º turno. |
-  | Interface | Quatro telas principais, quadro de 100 eleitores, CSV e opções de acessibilidade implementados. |
+  | Interface | Cinco telas principais (incluindo “Quem ficou em casa?”), quadro de 100 eleitores, CSV e opções de acessibilidade implementados. |
   | Verificação visual | Capturas de desenvolvimento em 1280 e 390 px; aprovação final e testes com pessoas pendentes. |
   | 2º turno de 2026 | Verificador e fluxo de atualização preparados; dados ainda não incorporados nesta versão. |
   | Publicação | Guia preparado; deploy, revisão final dos textos e definição de licença pendentes. |

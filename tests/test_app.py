@@ -72,7 +72,7 @@ def marts_com_2t(tmp_path_factory):
     return str(destino)
 
 
-TELAS = ["explore", "comparativo", "mapa", "brasil", "metodologia", "dicionario", "dados",
+TELAS = ["explore", "comparativo", "abstencao", "mapa", "brasil", "metodologia", "dicionario", "dados",
          "acessibilidade", "termos", "contato"]
 
 

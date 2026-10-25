@@ -27,6 +27,11 @@ def arquivo_detalhe_votacao(ano: int, forcar: bool = False) -> Path:
     return baixar(cfg["url"], RAIZ / cfg["arquivo_local"], forcar)
 
 
+def arquivo_perfil(ano: int, forcar: bool = False) -> Path:
+    cfg = carregar_sources()["tse"]["perfil_comparecimento_abstencao"][ano]
+    return baixar(cfg["url"], RAIZ / cfg["arquivo_local"], forcar)
+
+
 def arquivo_crosswalk(forcar: bool = False) -> Path:
     cfg = carregar_sources()["tse"]["municipio_tse_ibge"]
     return baixar(

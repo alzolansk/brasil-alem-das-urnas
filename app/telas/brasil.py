@@ -30,8 +30,10 @@ def render():
             "Eleição",
             data.ELEICOES,
             format_func=lambda e: f"{e[0]} · {e[1]}º turno",
+            index=ui.indice_eleicao(),
             key="brasil_eleicao",
         )
+    ui.lembrar_eleicao(ano, turno)
 
     carregando = ui.carregando()
     try:
@@ -71,7 +73,7 @@ def render():
         '<section class="escopos">'
         + ui.cartao_escopo("Município", mun["nm_municipio"], ind["aptos"], "mun", anima, 0)
         + ui.cartao_escopo("Estado", nome_uf, uf["aptos"], "uf", anima, 1)
-        + ui.cartao_escopo("País", "Brasil", br["aptos"], "br", anima, 2)
+        + ui.cartao_escopo("País", "Brasil", br["aptos"], "br", anima, 2, ui.BRASIL_EXTERIOR)
         + "</section>"
     )
 

@@ -6,7 +6,8 @@ Preenchimento manual (tarefas 2.4 e 4.3). Compare o valor calculado pelo pipelin
 |---|---|---|---|---|---|---|---|---|---|
 | 25/10/2026 | 2022 | 1º | Brasil (com exterior) | Eleitores aptos | 156.454.011 | 156.454.0xx (cortado na captura) | a confirmar | ? | Soma BRASIL + EXTERIOR; teste 06 já confere este valor |
 | 25/10/2026 | 2022 | 1º | Brasil (com exterior) | Comparecimento | 123.682.372 | 123.714.335 | −31.963 (−0,026%) | ❌ | Idem |
-| 25/10/2026 | 2022 | 1º | Brasil (com exterior) | Abstenção | 32.771.639 | pendente | | | Inclui 657 eleitores de seções não instaladas |
+| 25/10/2026 | 2022 | 1º | Brasil (com exterior) | Abstenção | 32.770.982 (20,95%) | 20,95% | 0,00 p.p. | ✅ | Linha `BRASIL` da mart (Brasil + Exterior). 32.771.639 = aptos − comparecimento, que inclui os 657 eleitores de seções não instaladas |
+| 25/10/2026 | 2026 | 1º | Brasil (com exterior) | Abstenção | 33.469.244 (21,08%) | 33,4 milhões (21,08%) | 0,00 p.p. | ✅ | Antes da inclusão do exterior na linha `BRASIL`, a mart dava 32.894.899 (20,84%) |
 | 25/10/2026 | 2022 | 2º | Brasil (com exterior) | Comparecimento | 124.252.796 | 124.267.614 | −14.818 (−0,012%) | ❌ | |
 | 25/10/2026 | 2026 | 1º | Brasil (com exterior) | Comparecimento | 125.275.835 | 125.277.230 | −1.395 (−0,001%) | ❌ | |
 | | | | UF: | | | | | | |
@@ -30,3 +31,35 @@ Em `mart_municipio_benchmark`, `comparecimento = válidos + brancos + nulos` nas
 | 2022, 2º turno | Manaus (AM) | 1.418.871 | 1.190.953 | 227.834 | 84 |
 
 A diferença é exatamente a dos eleitores de seções não instaladas, que o TSE não conta como abstenção (`aptos = comparecimento + abstenções + seções não instaladas`, como na metodologia). No bloco de 100 eleitores, "Não compareceram" usa `aptos − comparecimento` para os quatro grupos somarem 100%, e por isso inclui esses 84 eleitores. Os cartões de abstenção continuam com o número do TSE.
+
+## Perfil da abstenção ("Quem ficou em casa?", 25/10/2026)
+Rodado por `python -m scripts.perfil_abstencao`, que grava a evidência em `docs/validacao/perfil_execucao.json`. A mart só é substituída se não houver nenhum problema.
+
+| Verificação | Resultado |
+|---|---|
+| `QT_APTOS = QT_COMPARECIMENTO + QT_ABSTENCAO`, linha a linha (8.785.738 linhas em 2022, 11.060.908 em 2026) | 0 linhas diferentes, 0 negativas |
+| Códigos e descrições de gênero, faixa etária e escolaridade iguais aos do leiame | OK nos dois anos |
+| Soma das categorias de cada dimensão = total do município (sem dupla contagem) | OK em todos os municípios e turnos |
+| Municípios casados com o IBGE | 5.570 (2022) e 5.571 (2026), 100% |
+| Categorias informadas iguais em 2022 e 2026 | Sim |
+
+Totais do Brasil com exterior contra o painel oficial de comparecimento e abstenção do TSE, que usa este mesmo dataset:
+
+| Eleição | Indicador | Pipeline | TSE | Diferença |
+|---|---|---|---|---|
+| 2022, 1º turno | Aptos | 156.454.011 | 156.454.011 | 0 |
+| 2022, 1º turno | Comparecimento | 123.714.335 | 123.714.335 | 0 |
+| 2022, 2º turno | Aptos | 156.454.011 | 156.454.011 | 0 |
+| 2022, 2º turno | Comparecimento | 124.267.614 | 124.267.614 | 0 |
+| 2026, 1º turno | Aptos | 158.745.463 | 158.745.463 | 0 |
+| 2026, 1º turno | Comparecimento | 125.277.230 | 125.277.230 | 0 |
+
+Diferença de cobertura em relação a `detalhe_votacao_munzona` (base das outras telas), por município e sem o exterior:
+
+| Eleição | Municípios com aptos diferentes | Abstenção: diferença mediana | 99º percentil | Máxima |
+|---|---|---|---|---|
+| 2022, 1º turno | 5.453 de 5.570 | 0,025 p.p. | 0,18 p.p. | 2,35 p.p. |
+| 2022, 2º turno | 5.468 de 5.570 | 0,022 p.p. | 0,37 p.p. | 3,36 p.p. |
+| 2026, 1º turno | 5.462 de 5.571 | 0,023 p.p. | 0,17 p.p. | 0,77 p.p. |
+
+No perfil, os aptos de um município são os mesmos nos dois turnos de 2022 (Campinas: 878.715). No resultado por seção, eles mudam de um turno para o outro (Campinas: 881.377 e 881.208). Isso é compatível com o perfil contar o eleitor pelo cadastro e o resultado, pelo local onde votou (por exemplo, transferência temporária). O TSE não documenta o critério, então isto é inferência, como na seção acima. Decisão: a tela usa só o perfil, para grupos e média virem da mesma base, e avisa que a taxa pode diferir em décimos da do Explore.

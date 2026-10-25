@@ -1,0 +1,118 @@
+{
+  "executado_em": "2026-10-25T20:47:42.290047+00:00",
+  "fontes": {
+    "2022": {
+      "arquivo": "data/raw/tse/perfil_comparecimento_abstencao/perfil_2022.zip",
+      "linhas": 8785738,
+      "dt_geracao": [
+        "29/04/2025"
+      ],
+      "turnos": [
+        1,
+        2
+      ]
+    },
+    "2026": {
+      "arquivo": "data/raw/tse/perfil_comparecimento_abstencao/perfil_2026.zip",
+      "linhas": 11060908,
+      "dt_geracao": [
+        "13/10/2026"
+      ],
+      "turnos": [
+        1
+      ]
+    }
+  },
+  "mart": {
+    "arquivo": "data/marts/mart_perfil_abstencao.parquet",
+    "linhas": 558356,
+    "sha256": "aa36fd540c152a29b48f3e95d625ebd3fe37c3090fc93c48e86ed9fcdd4893e0"
+  },
+  "problemas": [],
+  "totais_brasil_com_exterior_vs_painel_tse": [
+    {
+      "ano": 2022,
+      "turno": 1,
+      "indicador": "aptos",
+      "pipeline": 156454011,
+      "tse": 156454011,
+      "diferenca": 0
+    },
+    {
+      "ano": 2022,
+      "turno": 1,
+      "indicador": "comparecimento",
+      "pipeline": 123714335,
+      "tse": 123714335,
+      "diferenca": 0
+    },
+    {
+      "ano": 2022,
+      "turno": 2,
+      "indicador": "aptos",
+      "pipeline": 156454011,
+      "tse": 156454011,
+      "diferenca": 0
+    },
+    {
+      "ano": 2022,
+      "turno": 2,
+      "indicador": "comparecimento",
+      "pipeline": 124267614,
+      "tse": 124267614,
+      "diferenca": 0
+    },
+    {
+      "ano": 2026,
+      "turno": 1,
+      "indicador": "aptos",
+      "pipeline": 158745463,
+      "tse": 158745463,
+      "diferenca": 0
+    },
+    {
+      "ano": 2026,
+      "turno": 1,
+      "indicador": "comparecimento",
+      "pipeline": 125277230,
+      "tse": 125277230,
+      "diferenca": 0
+    }
+  ],
+  "categorias_informadas_iguais_entre_anos": true,
+  "perfil_vs_detalhe_votacao_por_municipio": [
+    {
+      "ano": 2022,
+      "turno": 1,
+      "municipios": 5570,
+      "aptos_perfil": 155756933,
+      "aptos_resultados": 155758656,
+      "municipios_com_aptos_diferentes": 5453,
+      "dif_taxa_pp_mediana": 0.025,
+      "dif_taxa_pp_p99": 0.178,
+      "dif_taxa_pp_max": 2.35
+    },
+    {
+      "ano": 2022,
+      "turno": 2,
+      "municipios": 5570,
+      "aptos_perfil": 155756933,
+      "aptos_resultados": 155758433,
+      "municipios_com_aptos_diferentes": 5468,
+      "dif_taxa_pp_mediana": 0.022,
+      "dif_taxa_pp_p99": 0.374,
+      "dif_taxa_pp_max": 3.357
+    },
+    {
+      "ano": 2026,
+      "turno": 1,
+      "municipios": 5571,
+      "aptos_perfil": 157826587,
+      "aptos_resultados": 157828968,
+      "municipios_com_aptos_diferentes": 5462,
+      "dif_taxa_pp_mediana": 0.023,
+      "dif_taxa_pp_p99": 0.167,
+      "dif_taxa_pp_max": 0.769
+    }
+  ]
+}

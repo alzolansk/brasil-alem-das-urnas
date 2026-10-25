@@ -60,7 +60,7 @@ def _painel_estado(sigla, linha, brasil, coluna, nome, ano, turno):
         f"""<section class="estado-sel"><span class="rotulo">Estado selecionado</span>
         <h3>{escape(data.NOME_UF[sigla])}</h3><span class="valor">{fmt.pct(valor)}</span>
         <span class="info">{escape(nome)} no {turno}º turno de {ano}</span>
-        <dl><dt>Média nacional</dt><dd>{fmt.pct(media)}</dd>
+        <dl><dt>Média nacional ({ui.BRASIL_EXTERIOR})</dt><dd>{fmt.pct(media)}</dd>
         <dt>Diferença</dt><dd class="{classe}">{fmt.seta(diferenca)} {fmt.pp(diferenca)}</dd>
         <dt>Posição entre as UFs</dt><dd>{int(posicao)}º de 27</dd>
         <dt>Região</dt><dd>{escape(linha['regiao'])}</dd></dl></section>"""
@@ -104,8 +104,10 @@ def render():
             "Eleição",
             data.ELEICOES,
             format_func=lambda e: f"{e[0]} · {e[1]}º turno",
+            index=ui.indice_eleicao(),
             key="mapa_eleicao",
         )
+        ui.lembrar_eleicao(ano, turno)
         regiao = st.pills("Região", REGIOES, default="Todas", key="mapa_regiao") or "Todas"
         nivel = st.radio("Nível", NIVEIS, horizontal=True, key="mapa_nivel")
 

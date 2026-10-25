@@ -25,6 +25,28 @@ tse:
         (novo: Boa Esperança do Norte/MT, código TSE 73709). Tem 5.246 nulos técnicos
         (QT_VOTOS_NULOS_TECNICOS), já incluídos em QT_TOTAL_VOTOS_NULOS.
 
+  perfil_comparecimento_abstencao:
+    # Comparecimento e abstenção por perfil do eleitor (gênero, faixa etária, escolaridade...), por zona.
+    # Usado só na seção "Quem ficou em casa?" (ingestion/perfil.py, scripts/perfil_abstencao.py).
+    arquivo_csv: "perfil_comparecimento_abstencao_{ano}_BRASIL.csv"  # o zip de 2022 não traz DF nem ZZ em arquivo próprio
+    encoding: latin-1
+    separador: ";"
+    2022:
+      url: "https://cdn.tse.jus.br/estatistica/sead/odsele/perfil_comparecimento_abstencao/perfil_comparecimento_abstencao_2022.zip"
+      arquivo_local: data/raw/tse/perfil_comparecimento_abstencao/perfil_2022.zip
+      turnos: [1, 2]
+      notas: >-
+        43 colunas; escolaridade em CD/DS_GRAU_ESCOLARIDADE. 8.785.738 linhas (cada uma é uma combinação de
+        zona × gênero × estado civil × faixa etária × escolaridade × demais campos). Gerado em 29/04/2025.
+        Identidade de gênero toda "NÃO INFORMADO".
+    2026:
+      url: "https://cdn.tse.jus.br/estatistica/sead/odsele/perfil_comparecimento_abstencao/perfil_comparecimento_abstencao_2026.zip"
+      arquivo_local: data/raw/tse/perfil_comparecimento_abstencao/perfil_2026.zip
+      turnos: [1]    # acrescentar 2 quando o TSE publicar o perfil do 2º turno
+      notas: >-
+        45 colunas; escolaridade em CD/DS_GRAU_INSTRUCAO (mesmos códigos de 2022) e nova coluna de idioma
+        quilombola. 11.060.908 linhas. Gerado em 13/10/2026.
+
   municipio_tse_ibge:
     url: "https://cdn.tse.jus.br/estatistica/sead/odsele/municipio_tse_ibge/municipio_tse_ibge.zip"
     pagina: "https://dadosabertos.tse.jus.br/dataset/codigos-oficiais-de-uf-e-municipios-segundo-o-tse-e-o-ibge"

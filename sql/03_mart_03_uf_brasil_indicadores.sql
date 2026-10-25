@@ -11,8 +11,8 @@ WITH agregados AS (
     SELECT ano, turno, 'BRASIL' AS nivel, 'BR' AS localidade, CAST(NULL AS STRING) AS regiao,
         SUM(aptos), SUM(comparecimento), SUM(abstencoes), SUM(validos), SUM(brancos), SUM(nulos), SUM(anulados), SUM(apurados_em_separado), SUM(eleitores_secoes_nao_instaladas), SUM(secoes),
         MAX(dt_geracao), MAX(ingerido_em)
+    -- Brasil + Exterior, como no total oficial do TSE (o exterior também segue à parte, em EXTERIOR).
     FROM `brasil-alem-das-urnas-2026.staging.int_municipio`
-    WHERE NOT exterior
     GROUP BY ano, turno
 ), taxas AS (
     SELECT *, 100.0 * SAFE_DIVIDE(comparecimento, aptos) AS comparecimento_pct,

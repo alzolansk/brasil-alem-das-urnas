@@ -174,6 +174,119 @@ def resumo_100(nome, ano, turno, pontos) -> str:
             f"{', '.join(partes[:-1])} e {partes[-1]}.")
 
 
+# --- Quem ficou em casa? ------------------------------------------------------------------
+# Descrevem padrões de ausência por grupo; nunca atribuem motivos.
+
+
+def grupo(linha) -> str:
+    """Complemento de "eleitores": 'de 21 a 24 anos', 'do gênero feminino', 'analfabetos'."""
+    dimensao, categoria = linha["dimensao"], linha["categoria"]
+    if dimensao == "faixa_etaria":
+        return f"de {categoria}"
+    if dimensao == "genero":
+        return f"do gênero {categoria.lower()}"
+    return {"Analfabeto": "analfabetos", "Lê e escreve": "que leem e escrevem"}.get(
+        categoria, f"com {categoria.lower()}"
+    )
+
+
+def manchete_abstencao(nome, abstencao_pct, ano, turno) -> dict:
+    """Ex.: 'Em Campinas, [24 em cada 100 eleitores] ficaram em casa no 1º turno de 2026.'"""
+    n = round(abstencao_pct)
+    verbo = "ficou" if n == 1 else "ficaram"
+    return {"antes": f"Em {nome},", "destaque": f"{n} em cada 100 eleitores",
+            "depois": f" {verbo} em casa no {turno}º turno de {ano}."}  # fmt: skip
+
+
+def _taxa(linha) -> str:
+    return fmt.pct(linha["abstencao_pct"])
+
+
+def revelam(nome, ano, turno, tot, idades, generos, escolaridades, historico) -> list:
+    """Itens de "O que os dados revelam?".
+
+    tot: linha total; idades/generos/escolaridades: perfil.grupos(); historico: (situação, dados)
+    com situação 'disponivel' (dados = (total_base, total_comp, alta, queda)), 'pendente' ou 'sem_base'.
+    Grupos com menos de perfil.BASE_MINIMA eleitores não entram.
+    """
+    from . import perfil  # import tardio: perfil e narrativa ficam independentes
+
+    itens = [
+        f"Em {nome}, {_taxa(tot)} dos {fmt.inteiro(tot['aptos'])} eleitores aptos não foram votar "
+        f"no {turno}º turno de {ano}: {fmt.inteiro(tot['abstencoes'])} pessoas."
+    ]
+    maior, menor = perfil.extremos(idades)
+    if maior is not None:
+        texto = (f"A maior taxa de abstenção por idade ocorreu entre eleitores {grupo(maior)}, "
+                 f"atingindo {_taxa(maior)} ({fmt.inteiro(maior['abstencoes'])} de "
+                 f"{fmt.inteiro(maior['aptos'])} eleitores).")
+        if maior["voto_facultativo"]:
+            texto += " Nessa idade, o voto é facultativo."
+        itens.append(texto)
+        if maior["voto_facultativo"]:
+            o_maior, o_menor = perfil.extremos(idades[~idades["voto_facultativo"]])
+            if o_maior is not None:
+                itens.append(
+                    "Nas idades em que o voto é obrigatório (18 a 69 anos), a taxa foi maior entre "
+                    f"eleitores {grupo(o_maior)} ({_taxa(o_maior)}) e menor entre os "
+                    f"{grupo(o_menor)} ({_taxa(o_menor)})."
+                )
+        else:
+            itens.append(f"A menor taxa por idade ficou entre eleitores {grupo(menor)} ({_taxa(menor)}).")
+
+    por_codigo = {int(linha["cd_categoria"]): linha for _, linha in generos.iterrows()
+                  if not linha["base_pequena"]}  # fmt: skip
+    if 4 in por_codigo and 2 in por_codigo:
+        fem, mas = por_codigo[4], por_codigo[2]
+        dif = fem["abstencao_pct"] - mas["abstencao_pct"]
+        if classificar(dif) == "igual":
+            itens.append(f"Por gênero, a abstenção foi praticamente igual: {_taxa(fem)} no feminino "
+                         f"e {_taxa(mas)} no masculino.")
+        else:
+            itens.append(_ponto(f"Por gênero, a abstenção foi de {_taxa(fem)} no feminino e de "
+                                f"{_taxa(mas)} no masculino, uma diferença de {_modulo(dif)}"))
+
+    maior, menor = perfil.extremos(escolaridades)
+    if maior is not None:
+        dif = maior["abstencao_pct"] - tot["abstencao_pct"]
+        if classificar(dif) == "alta":
+            inicio = (f"A taxa de abstenção de eleitores {grupo(maior)} ficou {_modulo(dif)} acima "
+                      f"da média municipal ({_taxa(maior)} contra {_taxa(tot)}), a maior entre os "
+                      "níveis de escolaridade")
+        else:
+            inicio = (f"Por escolaridade, nenhum grupo ficou 0,5 p.p. ou mais acima da média "
+                      f"municipal ({_taxa(tot)})")
+        itens.append(f"{inicio}; a menor foi entre eleitores {grupo(menor)} ({_taxa(menor)}).")
+
+    situacao, dados = historico
+    if situacao == "pendente":
+        itens.append(f"O TSE ainda não publicou o perfil do {turno}º turno de 2026; a comparação "
+                     "com 2022 neste turno aparece quando ele sair.")
+    elif situacao == "sem_base":
+        itens.append(f"Não há dados de 2022 para {nome} (município instalado depois), então não há "
+                     "comparação entre as eleições.")
+    else:
+        tot_base, tot_comp, alta, queda = dados
+        delta = tot_comp["abstencao_pct"] - tot_base["abstencao_pct"]
+        itens.append(f"No total, a abstenção {_comparecimento_mudou(delta)} entre o {turno}º turno "
+                     f"de 2022 e o de 2026 (de {_taxa(tot_base)} para {_taxa(tot_comp)}).")
+        if alta is not None and classificar(alta["delta_pp"]) == "alta":
+            itens.append(_ponto(
+                f"Entre 2022 e 2026, a abstenção de eleitores {grupo(alta)} aumentou "
+                f"{_modulo(alta['delta_pp'])}, a maior alta entre os grupos (de "
+                f"{fmt.pct(alta['abstencao_pct_base'])} para {fmt.pct(alta['abstencao_pct_comp'])})"
+            ))
+        else:
+            itens.append("Entre 2022 e 2026, nenhum grupo teve alta de 0,5 p.p. ou mais na abstenção.")
+        if queda is not None and classificar(queda["delta_pp"]) == "queda":
+            itens.append(_ponto(
+                f"A maior queda foi entre eleitores {grupo(queda)}: {_modulo(queda['delta_pp'])} a "
+                f"menos (de {fmt.pct(queda['abstencao_pct_base'])} para "
+                f"{fmt.pct(queda['abstencao_pct_comp'])})"
+            ))
+    return itens
+
+
 def em_quatro_anos(delta_pp) -> str:
     classe = classificar(delta_pp)
     if classe == "igual":

@@ -137,6 +137,17 @@ def municipios_da_uf(sigla: str, ano: int, turno: int) -> pd.DataFrame:
     ]
 
 
+def perfil(cd_ibge: int, ano: int, turno: int) -> pd.DataFrame:
+    """Abstenção por gênero, faixa etária e escolaridade (mart_perfil_abstencao); vazio se não houver."""
+    df = carregar("mart_perfil_abstencao")
+    return df[(df["cd_municipio_ibge"] == cd_ibge) & (df["ano"] == ano) & (df["turno"] == turno)]
+
+
+def tem_perfil(ano: int, turno: int) -> bool:
+    df = carregar("mart_perfil_abstencao")
+    return bool(((df["ano"] == ano) & (df["turno"] == turno)).any())
+
+
 @st.cache_data(show_spinner=False)
 def malha(sigla: str) -> dict | None:
     caminho = GEO / f"malha_{sigla}.geojson"

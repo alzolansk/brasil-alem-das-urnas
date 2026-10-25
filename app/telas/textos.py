@@ -15,8 +15,12 @@ TEXTOS = {
 
 - **Eleições:** Presidente da República, {eleicoes}.
 - **Fonte dos resultados:** Portal de Dados Abertos do TSE (detalhe da votação por município e zona).
+- **Quem ficou em casa?:** perfil do eleitorado que compareceu e que se absteve, também do TSE
+  (gênero, faixa etária e escolaridade). É a base do painel oficial de comparecimento; por isso a
+  taxa do município nessa tela pode diferir em alguns décimos da do Explore.
 - **Municípios:** IBGE (códigos, regiões e malhas). Os votos do exterior ficam fora do mapa e dos
-  municípios, mas entram no total do Brasil.
+  municípios, mas entram no total do Brasil, indicado como "Brasil + Exterior" (como no total
+  oficial do TSE).
 - **Última atualização dos dados do app:** {atualizacao}.
 - **Conferência:** os totais nacionais foram comparados com o painel oficial do TSE. Veja o
   detalhe em *Metodologia*.
@@ -59,7 +63,9 @@ def _dicionario() -> str:
         f"{linhas}\n\n**Eleitores aptos:** quem podia votar. **p.p.:** ponto percentual, a "
         "diferença simples entre duas porcentagens (de 78,5% para 79,4% = +0,9 p.p.). "
         "Comparecimento e abstenção são calculados sobre os aptos; válidos, brancos e nulos, "
-        "sobre quem compareceu."
+        "sobre quem compareceu.\n\n**Abstenção de um grupo** (Quem ficou em casa?): eleitores do "
+        "grupo que não compareceram ÷ eleitores aptos do grupo. Grupos com menos de 50 eleitores "
+        "aptos aparecem com * e ficam fora dos destaques."
     )
 
 

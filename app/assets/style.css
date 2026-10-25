@@ -74,6 +74,7 @@ a { color: var(--blue); } a:hover { color: var(--blue-hover); }
 .trilha [aria-current] { color: var(--text); font-weight: 600; }
 .etiqueta { display: inline-flex; align-items: center; font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 999px; border: 1px solid transparent; }
 .etiqueta.ok { background: var(--green-soft); color: var(--green-text); }
+.etiqueta.neutra { background: var(--bg-soft); color: var(--caption); border-color: var(--border); align-self: flex-start; }
 .etiqueta.aviso { background: var(--yellow-tag); color: var(--yellow-tag-text); border-color: var(--yellow-tag-border); }
 
 /* abertura da tela */
@@ -387,3 +388,66 @@ table.tab .base { color: var(--caption); } table.tab .comp { font-weight: 600; }
 /* ---- transição entre páginas (ui._css_transicao escolhe o lado) ---- */
 @keyframes entrar-direita { from { opacity: 0; transform: translateX(56px); } to { opacity: 1; transform: none; } }
 @keyframes entrar-esquerda { from { opacity: 0; transform: translateX(-56px); } to { opacity: 1; transform: none; } }
+
+/* ---- Quem ficou em casa? (app/telas/abstencao.py) ---- */
+/* controles segmentados: mesmo desenho dos rádios do Explore */
+:is(.st-key-abstencao_eleicao, .st-key-abstencao_ordem, .st-key-abstencao_hist_dim) [role="radiogroup"] {
+  display: inline-flex; flex-wrap: wrap; gap: 0; border: 1px solid var(--blue); border-radius: 999px; padding: 2px; background: var(--bg); }
+:is(.st-key-abstencao_eleicao, .st-key-abstencao_ordem, .st-key-abstencao_hist_dim) [role="radiogroup"] label {
+  margin: 0; padding: 0 16px; min-height: 40px; border-radius: 999px; display: flex; align-items: center; cursor: pointer; transition: background .15s, color .15s; }
+:is(.st-key-abstencao_eleicao, .st-key-abstencao_ordem, .st-key-abstencao_hist_dim) [role="radiogroup"] label > div:first-child,
+:is(.st-key-abstencao_eleicao, .st-key-abstencao_ordem, .st-key-abstencao_hist_dim) [role="radiogroup"] label > div > div:first-child:not([data-testid="stMarkdownContainer"]) { display: none; }
+:is(.st-key-abstencao_eleicao, .st-key-abstencao_ordem, .st-key-abstencao_hist_dim) label p { color: var(--blue) !important; font-weight: 600 !important; font-size: 14px !important; white-space: nowrap; }
+:is(.st-key-abstencao_eleicao, .st-key-abstencao_ordem, .st-key-abstencao_hist_dim) [role="radiogroup"] label:has(input:checked) { background: var(--blue); }
+:is(.st-key-abstencao_eleicao, .st-key-abstencao_ordem, .st-key-abstencao_hist_dim) [role="radiogroup"] label:has(input:checked) p { color: #fff !important; }
+:is(.st-key-abstencao_eleicao, .st-key-abstencao_ordem, .st-key-abstencao_hist_dim) label:has(input:focus-visible) { outline: 3px solid var(--yellow); outline-offset: 2px; }
+:is(.st-key-abstencao_ordem, .st-key-abstencao_hist_dim) { display: flex; justify-content: flex-end; }
+
+.grade-abstencao { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 24px; }
+.grade-abstencao .heroi .comparacoes { grid-template-columns: minmax(0, 1fr); }
+.st-key-abstencao_idade, .st-key-abstencao_historico { border: 1px solid var(--border); border-radius: 12px; padding: 24px; gap: 20px !important; background: var(--bg); }
+.stApp :is(.st-key-abstencao_idade, .st-key-abstencao_historico, .nota-metodo, .cartao-grupos) h2 { font-size: 22px; font-weight: 700; line-height: 1.3; margin: 0; padding: 0; }
+.cartao-grupos { height: 100%; }
+
+/* barras por grupo: rótulo e tamanho do grupo | trilho 0–100% com a média | taxa */
+/* .stApp vence o "> ul { display: block; width: fit-content }" do markdown do Streamlit */
+.stApp .grupos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; width: 100%; }
+.stApp .grupos li { width: 100%; display: grid; grid-template-columns: minmax(120px, min(40%, 260px)) minmax(80px, 1fr) 64px; gap: 4px 16px; align-items: center; margin: 0; padding: 6px 0; border-bottom: 1px solid var(--divider); }
+.grupos .rot { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.grupos .nome { font-size: 14px; font-weight: 600; color: var(--text); display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.grupos .n { font-size: 12px; color: var(--caption); }
+.grupos .val { text-align: right; font-weight: 700; font-size: 15px; color: var(--navy); font-variant-numeric: tabular-nums; }
+.barra-g { position: relative; height: 14px; background: var(--track); border-radius: 3px; }
+.barra-g > i { display: block; height: 100%; border-radius: 3px; background: var(--blue); }
+.barra-g::after { content: ""; position: absolute; left: var(--media); top: -4px; bottom: -4px; border-left: 2px dashed var(--navy); }
+.grupos .facultativo .barra-g > i { background: var(--blue-2t); }
+.grupos .pequena .barra-g > i { opacity: .45; }
+.tag-grupo { font-size: 11px; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; color: var(--blue); background: var(--blue-soft); border-radius: 999px; padding: 2px 8px; }
+.traco-media { display: inline-block; width: 0; height: 14px; border-left: 2px dashed var(--navy); }
+.legenda-grupos { margin-top: 4px; }
+.stApp .fora-grafico { font-size: 13px; color: var(--caption); margin: 0; }
+table.tab th.total { font-weight: 700; }
+.nota-metodo ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+.stApp .nota-metodo li { font-size: 14px; line-height: 1.55; color: var(--muted); margin: 0; }
+.nota-metodo li b { color: var(--text); }
+.nota-metodo a { font-weight: 600; font-size: 15px; min-height: 44px; display: inline-flex; align-items: center; gap: 8px; }
+@media (prefers-reduced-motion: no-preference) {
+  .anima .barra-g > i { transform-origin: left; animation: crescer 600ms cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(200ms + var(--j, 0) * 30ms); }
+}
+@media (max-width: 1024px) {
+  .grade-abstencao { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .st-key-abstencao_idade, .st-key-abstencao_historico { padding: 20px 16px; }
+  .st-key-abstencao_eleicao [role="radiogroup"] { display: grid; grid-template-columns: 1fr 1fr; width: 100%; border-radius: 22px; }
+  .st-key-abstencao_eleicao [role="radiogroup"] label { justify-content: center; padding: 0 8px; }
+  :is(.st-key-abstencao_ordem, .st-key-abstencao_hist_dim) { justify-content: flex-start; }
+  :is(.st-key-abstencao_ordem, .st-key-abstencao_hist_dim) [role="radiogroup"] label { padding: 0 12px; }
+  .stApp .grupos li { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "rot val" "barra barra"; }
+  .grupos .rot { grid-area: rot; } .grupos .val { grid-area: val; } .grupos .barra-g { grid-area: barra; }
+  /* comparação: no celular ficam grupo, 2022, 2026 e a diferença (com seta e sinal) */
+  .st-key-abstencao_historico table.tab :is(th, td):nth-child(n+5) { display: none; }
+  .st-key-abstencao_historico table.tab :is(th, td) { padding: 12px 8px; }
+  .st-key-abstencao_historico table.tab :is(th, td):first-child { padding-left: 12px; }
+  .st-key-abstencao_historico table.tab :is(th, td):nth-child(4) { padding-right: 12px; }
+}

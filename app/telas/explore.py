@@ -65,8 +65,10 @@ def render():
             data.ELEICOES,
             format_func=lambda e: f"{e[0]} · {e[1]}º turno",
             horizontal=True,
+            index=ui.indice_eleicao(),
             key="explore_eleicao",
         )
+    ui.lembrar_eleicao(ano, turno)
 
     carregando = ui.carregando()
     try:

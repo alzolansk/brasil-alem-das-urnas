@@ -61,7 +61,7 @@ def test_razao_das_somas_e_exterior(db):
     totais = dict(db.execute("""SELECT nivel, SUM(aptos)
         FROM marts.mart_uf_brasil_indicadores WHERE ano=2022 AND turno=1
         GROUP BY nivel""").fetchall())
-    assert totais == {"UF": 1010, "BRASIL": 1010, "EXTERIOR": 10}
+    assert totais == {"UF": 1010, "BRASIL": 1020, "EXTERIOR": 10}
 
 
 def test_ausencia_nao_vira_zero(db):

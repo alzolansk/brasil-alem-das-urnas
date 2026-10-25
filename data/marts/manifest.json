@@ -59,7 +59,7 @@
     },
     "mart_uf_brasil_indicadores.parquet": {
       "linhas": 87,
-      "sha256": "d94bbf079af7d6e7189c16e5427af1b6734ce7196e3dd7af8dd137d7aba095ad"
+      "sha256": "d1d09cbab4581cde189dcbeca2255b850eef60be64f37964d6bf62b96432ec06"
     },
     "mart_municipio_comparativo.parquet": {
       "linhas": 22282,
@@ -67,7 +67,11 @@
     },
     "mart_municipio_benchmark.parquet": {
       "linhas": 16711,
-      "sha256": "ded5ee29b6b094ca16b4d08266d0da35efe1b2c5c164c353dea29dab7b42eaec"
+      "sha256": "47c03360dc2aeab86e4adeb537ef92c7450fc71ecc316f07b002f2f0dc624de2"
+    },
+    "mart_perfil_abstencao.parquet": {
+      "linhas": 558356,
+      "sha256": "aa36fd540c152a29b48f3e95d625ebd3fe37c3090fc93c48e86ed9fcdd4893e0"
     }
   }
 }

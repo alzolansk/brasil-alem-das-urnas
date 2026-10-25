@@ -61,8 +61,7 @@ O `Home.py` foi trocado de `st.markdown(...)` para **`st.html(...)`** (linhas 23
 3. Conferir de novo com o script de sondagem (abaixo), em servidor frio e aquecido.
 4. Atualizar `docs/planejamento.md`, na seção Loader, e o checklist 11.4 de `docs/design/aceite/README.md`. Talvez refazer as capturas do loader.
 5. Itens da revisão anterior ainda abertos (não tocados):
-   - "Sobre os dados" diz que o exterior entra no total do Brasil (errado; ver `docs/metodologia.md:51`).
-   - Faltam no app a nota de diferença com o painel do TSE e o exterior à parte.
+   - Falta no app a nota de diferença com o painel do TSE e o exterior à parte. (O total "Brasil" já inclui o exterior, com o informativo "Brasil + Exterior".)
    - O Explore no 2º turno de 2026 fica sem "vs. 2022".
    - Faltam setas no `bloco_indicador`.
    - Bug de reselecionar a mesma linha na Lista ordenada do Mapa.

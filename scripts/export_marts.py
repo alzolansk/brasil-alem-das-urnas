@@ -59,6 +59,11 @@ def exportar():
             print(f"{nome}: {len(df)} linhas", flush=True)
         for nome in manifest["arquivos"]:
             (Path(temp) / nome).replace(destino / nome)
+    # Parquets gerados fora do BigQuery (scripts.perfil_abstencao) mantêm a sua entrada.
+    anterior = destino / "manifest.json"
+    if anterior.exists():
+        for nome, info in json.loads(anterior.read_text(encoding="utf-8"))["arquivos"].items():
+            manifest["arquivos"].setdefault(nome, info)
     (destino / "manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )

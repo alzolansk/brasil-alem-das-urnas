@@ -7,7 +7,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from . import data, fmt
+from . import data, fmt, perfil
 from .loader import loader_html
 
 ASSETS = Path(__file__).resolve().parents[1] / "assets"
@@ -16,6 +16,7 @@ PAGINAS: dict = {}  # preenchido por navegacao.py: chave -> st.Page
 ABAS = [
     ("explore", "Explore seu município"),
     ("comparativo", "Comparativo 2022 × 2026"),
+    ("abstencao", "Quem ficou em casa?"),
     ("mapa", "Mapa eleitoral"),
     ("brasil", "Brasil em perspectiva"),
 ]
@@ -38,6 +39,11 @@ ABERTURAS = {
         "Comparativo 2022 × 2026",
         "Veja como os indicadores do município evoluíram entre as duas últimas eleições "
         "presidenciais e o que mudou de um turno para o outro.",
+    ),
+    "abstencao": (
+        "Quem ficou em casa?",
+        "Descubra como a abstenção eleitoral se distribuiu entre diferentes grupos de eleitores "
+        "da sua cidade.",
     ),
     "mapa": (
         "Mapa eleitoral interativo",
@@ -145,6 +151,18 @@ def url(pagina: str = "explore") -> str:
     if st.session_state.get("alto_contraste"):
         consulta += "&c=1"
     return caminho + consulta
+
+
+def indice_eleicao() -> int:
+    """Posição em data.ELEICOES da última eleição escolhida em qualquer tela (filtro compartilhado).
+
+    O Streamlit apaga o estado dos widgets de outra página; esta chave comum o leva de uma tela à outra."""
+    escolhida = st.session_state.get("_eleicao")
+    return data.ELEICOES.index(escolhida) if escolhida in data.ELEICOES else 0
+
+
+def lembrar_eleicao(ano: int, turno: int) -> None:
+    st.session_state["_eleicao"] = (ano, turno)
 
 
 def seletor_municipio() -> None:
@@ -347,7 +365,8 @@ def cartao_heroi(titulo, valor, frase, comparacoes, anima: str = "", i: int = 0)
     )
 
 
-def cartao_leitura(itens, link: tuple | None = None, anima: str = "", i: int = 0) -> str:
+def cartao_leitura(itens, link: tuple | None = None, anima: str = "", i: int = 0,
+                   rotulo: str = "Leitura rápida") -> str:
     """link: (texto, href) opcional no rodapé do cartão."""
     lista = "".join(
         f'<li><b aria-hidden="true">{n}</b><span>{escape(item)}</span></li>'
@@ -360,7 +379,7 @@ def cartao_leitura(itens, link: tuple | None = None, anima: str = "", i: int = 0
         else ""
     )
     return html(
-        f"""<aside class="escuro{anima}" style="--i:{i}"><span class="rotulo">Leitura rápida</span>
+        f"""<aside class="escuro{anima}" style="--i:{i}"><span class="rotulo">{escape(rotulo)}</span>
         <ol>{lista}</ol>{rodape_link}</aside>"""
     )
 
@@ -483,6 +502,62 @@ def barra_diferenca(delta_pp, maximo: float, j: int = 0) -> str:
     )
 
 
+# O total "Brasil" das marts soma o exterior, como o total oficial do TSE.
+BRASIL_EXTERIOR = "Brasil + Exterior"
+
+
+def barras_grupos(linhas, media: float, maior=None, menor=None, anima: str = "") -> str:
+    """Barras horizontais de abstenção por grupo, na escala de 0 a 100%.
+
+    linhas: DataFrame de perfil.grupos(); maior/menor: códigos de categoria destacados.
+    A linha tracejada em cada trilho marca a média do município (`media`, em %)."""
+    itens = []
+    for j, (_, g) in enumerate(linhas.iterrows()):
+        cd = int(g["cd_categoria"])
+        classes = "grupo" + (" facultativo" if g["voto_facultativo"] else "") + (
+            " pequena" if g["base_pequena"] else "")
+        marca = "Maior taxa" if cd == maior else "Menor taxa" if cd == menor else ""
+        tag = f'<span class="tag-grupo">{marca}</span>' if marca else ""
+        itens.append(
+            f"""<li class="{classes}"><div class="rot"><span class="nome">{escape(g["categoria"])}{tag}</span>
+            <span class="n">{fmt.inteiro(g["abstencoes"])} de {fmt.inteiro(g["aptos"])} eleitores</span></div>
+            <div class="barra-g" aria-hidden="true"><i style="width:{g["abstencao_pct"]:.1f}%;--j:{j}"></i></div>
+            <span class="val">{fmt.pct(g["abstencao_pct"])}{"*" if g["base_pequena"] else ""}</span></li>"""
+        )
+    return html(f'<ul class="grupos{anima}" style="--media:{media:.2f}%">{"".join(itens)}</ul>')
+
+
+def legenda_grupos(media: float, facultativo: bool = False, pequena: bool = False) -> str:
+    itens = []
+    if facultativo:
+        itens += ['<span><i class="quadrado" style="background:var(--blue)"></i>Voto obrigatório</span>',
+                  '<span><i class="quadrado" style="background:var(--blue-2t)"></i>Voto facultativo</span>']
+    itens.append(f'<span><i class="traco-media"></i>Média do município ({fmt.pct(media)})</span>')
+    if pequena:
+        itens.append(f"<span>* menos de {perfil.BASE_MINIMA} eleitores aptos: percentual instável</span>")
+    return f'<div class="legenda-linha legenda-grupos">{"".join(itens)}</div>'
+
+
+
+def tabela_grupos(linhas, total) -> str:
+    """Alternativa em tabela (dentro de <details>) com os números absolutos de cada grupo."""
+    corpo = "".join(
+        f'<tr><th scope="row">{escape(g["categoria"])}</th><td>{fmt.inteiro(g["aptos"])}</td>'
+        f'<td>{fmt.inteiro(g["comparecimento"])}</td><td>{fmt.inteiro(g["abstencoes"])}</td>'
+        f'<td>{fmt.pct(g["abstencao_pct"])}</td></tr>'
+        for _, g in linhas.iterrows()
+    )
+    return html(
+        f"""<details class="e100-det"><summary>Ver como tabela</summary><table><thead><tr>
+        <th scope="col">Grupo</th><th scope="col">Aptos</th><th scope="col">Compareceram</th>
+        <th scope="col">Não compareceram</th><th scope="col">Abstenção</th></tr></thead>
+        <tbody>{corpo}</tbody><tfoot><tr><th scope="row">Todos os eleitores</th>
+        <td>{fmt.inteiro(total["aptos"])}</td><td>{fmt.inteiro(total["comparecimento"])}</td>
+        <td>{fmt.inteiro(total["abstencoes"])}</td><td>{fmt.pct(total["abstencao_pct"])}</td></tr>
+        </tfoot></table></details>"""
+    )
+
+
 def etiqueta(texto: str, tipo: str) -> str:
     return f'<span class="etiqueta {tipo}">{escape(texto)}</span>'
 
@@ -516,11 +591,12 @@ def legenda_turnos() -> str:
     )
 
 
-def cartao_escopo(tipo, nome, aptos, serie, anima: str = "", i: int = 0) -> str:
+def cartao_escopo(tipo, nome, aptos, serie, anima: str = "", i: int = 0, info: str = "") -> str:
     aptos_txt = fmt.mil(aptos)
+    selo = etiqueta(info, "neutra") if info else ""
     return html(
         f"""<article class="escopo serie-{serie}{anima}" style="--i:{i}">
-        <span class="rotulo-cinza">{escape(tipo)}</span><h2>{escape(nome)}</h2>
+        <span class="rotulo-cinza">{escape(tipo)}</span><h2>{escape(nome)}</h2>{selo}
         <span>{escape(aptos_txt)} eleitores aptos</span></article>"""
     )
 

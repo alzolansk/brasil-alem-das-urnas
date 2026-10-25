@@ -1,4 +1,6 @@
-"""Recria tudo em um comando: ingestão → carga no raw → SQL + testes → export das marts.
+"""Recria tudo em um comando: ingestão → carga no raw → SQL + testes → export das marts → perfil
+da abstenção (Parquet gerado em Python, sem BigQuery; roda também sozinho com
+`python -m scripts.perfil_abstencao`).
 
 Uso: python -m scripts.rebuild [--sem-bq]
 Requer `gcloud auth application-default login` (menos com --sem-bq, que para após a ingestão).
@@ -9,7 +11,7 @@ import argparse
 import sys
 
 from ingestion import load_bq, pipeline
-from scripts import export_marts, modelagem
+from scripts import export_marts, modelagem, perfil_abstencao
 
 
 def main() -> int:
@@ -28,6 +30,10 @@ def main() -> int:
     modelagem.executar()
     print("== 4/4 exportação das marts", flush=True)
     export_marts.exportar()
+    print("== extra: perfil da abstenção (Quem ficou em casa?, sem BigQuery)", flush=True)
+    if perfil_abstencao.executar() != 0:
+        print("Perfil com problemas: mart_perfil_abstencao.parquet não foi substituído.")
+        return 1
     print("Pronto: confira `git diff --stat data/marts`, rode o pytest e faça o commit.")
     return 0
 

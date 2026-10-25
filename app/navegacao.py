@@ -2,11 +2,12 @@
 
 import streamlit as st
 from lib import ui
-from telas import brasil, comparativo, explore, mapa, textos
+from telas import abstencao, brasil, comparativo, explore, mapa, textos
 
 TELAS = {
     "explore": ("Explore seu município", explore.render),
     "comparativo": ("Comparativo 2022 × 2026", comparativo.render),
+    "abstencao": ("Quem ficou em casa?", abstencao.render),
     "mapa": ("Mapa eleitoral", mapa.render),
     "brasil": ("Brasil em perspectiva", brasil.render),
 }

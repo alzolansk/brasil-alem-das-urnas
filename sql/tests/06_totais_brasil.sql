@@ -1,7 +1,7 @@
 -- Deve retornar zero linhas.
 WITH totais AS (
     SELECT ano, turno, SUM(aptos) AS aptos, SUM(comparecimento) AS comparecimento, SUM(abstencoes) AS abstencoes, SUM(validos) AS validos, SUM(brancos) AS brancos, SUM(nulos) AS nulos, SUM(anulados) AS anulados, SUM(apurados_em_separado) AS apurados_em_separado, SUM(eleitores_secoes_nao_instaladas) AS eleitores_secoes_nao_instaladas, SUM(secoes) AS secoes
-    FROM `brasil-alem-das-urnas-2026.marts.mart_municipio_indicadores` WHERE NOT exterior GROUP BY ano, turno
+    FROM `brasil-alem-das-urnas-2026.marts.mart_municipio_indicadores` GROUP BY ano, turno
 )
 SELECT t.ano, t.turno, 'soma_territorio' AS teste
 FROM totais t FULL OUTER JOIN (
@@ -13,6 +13,6 @@ SELECT 2022, 1, 'total_oficial_com_exterior'
 FROM (
     SELECT SUM(aptos) AS aptos, SUM(comparecimento) AS comparecimento, COUNT(*) AS n
     FROM `brasil-alem-das-urnas-2026.marts.mart_uf_brasil_indicadores`
-    WHERE ano = 2022 AND turno = 1 AND nivel IN ('BRASIL', 'EXTERIOR')
+    WHERE ano = 2022 AND turno = 1 AND nivel = 'BRASIL'
 )
-WHERE aptos IS DISTINCT FROM 156454011 OR comparecimento IS DISTINCT FROM 123682372 OR n != 2;
+WHERE aptos IS DISTINCT FROM 156454011 OR comparecimento IS DISTINCT FROM 123682372 OR n != 1;
