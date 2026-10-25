@@ -8,7 +8,7 @@ Arquivo criado em 25/10/2026: o repositório não tinha um documento de planejam
 |---|---|
 | 0 e 1: estrutura e ingestão TSE/IBGE | Concluídas (commit `c590ce2`) |
 | 2: modelagem SQL e exportação das marts | **Concluída em 25/10/2026** |
-| 3: app Streamlit | **Implementada em 25/10/2026; aprovação visual (3.0), textos (3.7/3.8) e testes com pessoas (3.9) pendentes** |
+| 3: app Streamlit | **Implementada; redesenho de fidelidade ao protótipo feito em 25/10/2026. Pendentes: prints e aprovação visual (3.0), textos (3.7/3.8) e testes com pessoas (3.9)** |
 | 4 em diante | Não iniciadas |
 
 ## Fase 2: o que está pronto
@@ -30,7 +30,7 @@ Arquivo criado em 25/10/2026: o repositório não tinha um documento de planejam
 ## Fase 3: app Streamlit (25/10/2026)
 | # | Status |
 |---|---|
-| 3.0 | Feito com dados reais (sem selo "Dados ilustrativos"). **Aprovação visual pendente**: não consegui abrir o app no navegador nesta sessão (extensão do Chrome indisponível), então não há prints em `docs/design/aceite/` e a fidelidade ao protótipo 2 e o layout a 375px não foram vistos. Rodar `python -m streamlit run app/Home.py` e conferir. |
+| 3.0 | 1ª versão reprovada pelo usuário (distante do protótipo). Refeita segundo `docs/design/especificacao-fidelidade-prototipo.md` e conferida contra os 4 artboards do canvas de Design. **Pendente (humano):** prints em `docs/design/aceite/` (1280px e 390px, Campinas e um município de zona única, alto contraste) e aprovação pelo checklist da seção 9.2 da especificação. |
 | 3.1 | Feito: faixa, cabeçalho com logo e busca, abas (menu "☰" abaixo de 768px), breadcrumb, rodapé, alto contraste. |
 | 3.2–3.5 | Feitas: Explore, Comparativo, Mapa (grade de UFs clicável, municípios por UF, lista ordenada), Brasil em perspectiva. Estados de carregamento (esqueleto), sem dado ("Aguardando apuração"), município não encontrado (com sugestões) e erro de leitura. Município mantido entre telas e na URL (`?m=`). |
 | 3.6 | Feito: `app/lib/narrativa.py`, modelos fixos, testados. Limite de 0,5 p.p. |
@@ -40,12 +40,22 @@ Arquivo criado em 25/10/2026: o repositório não tinha um documento de planejam
 
 Decisões aplicadas: D4 (comparativo fixo 2022→2026), D5 (azul ▲ / laranja ▼), D7 (alto contraste), D8 (sem botões Consultar/Atualizar).
 
-Testes: `tests/test_app.py` (AppTest, sem GCP) abre as 10 telas, cobre município inexistente, busca sem acento, 2º turno 2026 aguardando, município de uma zona, mapa e narrativa. Total: 37 passam; ruff limpo.
+Testes: `tests/test_app.py` (AppTest, sem GCP) abre as 10 telas, cobre município inexistente, busca sem acento, 2º turno 2026 aguardando (Explore e Brasil), município de uma zona, mapa, app aberto sem caminho, grade de UFs (27 estados, esmaecimento por região), eixo de categorias da tendência, `fmt.mil`/`milhar_curto` e as frases novas (alta, queda e igual). Total: 56 passam; ruff limpo.
+
+### Redesenho de fidelidade (25/10/2026)
+Implementado conforme a especificação: tokens novos, Inter/Raleway pelo tema, logo e favicon novos, barra utilitária, faixa 3:1:3, busca em pílula, abas sublinhadas, trilha com o município, H1 + abertura + linha de contexto, filtros em painel, manchetes com grifo, heróis com Leitura rápida ao lado, bloco de votos (brancos em amarelo), tabela de zonas em cartão com CSV, barras pareadas por turno, mapa em 3 colunas com 5 faixas e região esmaecendo, ranking, cartões de escopo, "Indicador a indicador" em HTML, tendência corrigida (eixo de categorias), rodapé único, animações A1–A10 só no 1º carregamento e desligadas por `prefers-reduced-motion` e no alto contraste. A tela Brasil ganhou o filtro de eleição.
+
+Contraste conferido por cálculo (WCAG): todos os pares da seção 8 passam (menor: branco sobre `#2F6BBE`, 5,3:1; borda de campo `#888F99`, 3,3:1).
 
 ### Problemas e pontos de atenção
 1. Streamlit 1.58: `use_container_width` está obsoleto; usei `width="stretch"` e subi o mínimo para `streamlit>=1.50`. `unidecode` não estava instalado localmente.
 2. As páginas ficam em `app/telas/` (não `pages/`) porque o app usa `st.navigation`; o registro está em `app/navegacao.py`.
 3. Boa Esperança do Norte/MT não tem polígono: o mapa avisa e o município aparece só na lista ordenada.
 4. Troca de página por `st.page_link` mantém o município pela sessão; o link compartilhável usa `?m=` (código IBGE). Abrir uma URL com `?m=` numa sessão nova funciona; não testado no navegador.
-5. Ainda sem testar no celular e sem checar o contraste 4,5:1 nos dois temas.
-6. Não avancei para a Fase 4.
+5. Ainda sem teste visual no navegador (a extensão do Chrome não respondeu; os prints ficaram com o usuário). Os seletores CSS de Streamlit 1.58 foram conferidos no código do front (`data-stale`, `stPageLink-NavLink`, estrutura do rádio), não no DOM renderizado.
+6. O `st.page_link` não expõe `aria-current`: a aba ativa é marcada por CSS gerado com a chave do contêiner (`.st-key-aba_<tela>`).
+7. Quadrados dos estados: em vez de marcadores de 54px (e `size=40` no celular), uso retângulos em coordenadas do gráfico, que encolhem com a largura da tela; o Python não sabe a largura do aparelho.
+8. Links HTML ("Início", logo, "Ver … em perspectiva") recarregam a página; o município e o alto contraste seguem pela URL (`?m=`, `&c=1`). As abas e o rodapé usam `st.page_link` e mantêm a sessão.
+9. A busca também aceita nome ou sigla de estado (lista os municípios dele), já que o placeholder do protótipo é "Buscar município ou estado".
+10. A fonte do Google Fonts carregada é o subconjunto latino; símbolos como ▲ ▼ − › usam a fonte de reserva do sistema.
+11. Não avancei para a Fase 4.

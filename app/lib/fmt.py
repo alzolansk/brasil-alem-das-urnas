@@ -49,3 +49,30 @@ def milhoes(valor) -> str:
     if abs(valor) >= 1_000_000:
         return f"{_decimal(valor / 1_000_000, 1)} milhões"
     return inteiro(valor)
+
+
+def mil(valor) -> str:
+    """'873 mil' entre mil e um milhão; acima, milhoes(); abaixo, inteiro()."""
+    if valor is None or valor != valor:
+        return "—"
+    if abs(valor) >= 1_000_000:
+        return milhoes(valor)
+    if abs(valor) >= 1_000:
+        return f"{round(valor / 1000)} mil"
+    return inteiro(valor)
+
+
+def milhar_curto(valor, casas: int = 1) -> str:
+    """'7,8 mil', '31,6 mil'; abaixo de mil, inteiro()."""
+    if valor is None or valor != valor:
+        return "—"
+    if abs(valor) >= 1_000_000:
+        return milhoes(valor)
+    if abs(valor) >= 1_000:
+        return f"{_decimal(valor / 1000, casas)} mil"
+    return inteiro(valor)
+
+
+def pp_sem_mais(valor, casas: int = 1) -> str:
+    """Como pp(), sem o '+' (a seta ao lado já indica o aumento)."""
+    return pp(valor, casas).lstrip("+")

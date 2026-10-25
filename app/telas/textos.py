@@ -28,7 +28,10 @@ TEXTOS = {
 - Texto com contraste mínimo de 4,5:1 (WCAG AA) e opção **Alto contraste** no topo da página.
 - Navegação pelo teclado, com foco visível.
 - Todo gráfico tem uma alternativa em tabela ou lista.
-- Variações sempre com seta e sinal, não só com cor.
+- Variações sempre com seta e sinal, não só com cor. Azul ▲ indica aumento e laranja ▼ indica
+  queda: a cor indica só a direção da mudança, não se ela é boa ou ruim.
+- As animações aparecem só no primeiro carregamento de cada tela e ficam desligadas se o seu
+  sistema pede menos movimento ou com o alto contraste ligado.
 - Se encontrar uma barreira, conte pela página *Contato*.
 """,
     "termos": """

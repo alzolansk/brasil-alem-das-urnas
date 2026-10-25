@@ -24,6 +24,16 @@ INDICADORES = {
 
 ELEICOES = [(2026, 1), (2026, 2), (2022, 1), (2022, 2)]
 
+NOME_UF = {
+    "AC": "Acre", "AL": "Alagoas", "AM": "Amazonas", "AP": "Amapá", "BA": "Bahia",
+    "CE": "Ceará", "DF": "Distrito Federal", "ES": "Espírito Santo", "GO": "Goiás",
+    "MA": "Maranhão", "MG": "Minas Gerais", "MS": "Mato Grosso do Sul", "MT": "Mato Grosso",
+    "PA": "Pará", "PB": "Paraíba", "PE": "Pernambuco", "PI": "Piauí", "PR": "Paraná",
+    "RJ": "Rio de Janeiro", "RN": "Rio Grande do Norte", "RO": "Rondônia", "RR": "Roraima",
+    "RS": "Rio Grande do Sul", "SC": "Santa Catarina", "SE": "Sergipe", "SP": "São Paulo",
+    "TO": "Tocantins",
+}
+
 
 def normalizar(texto: str) -> str:
     return unidecode(str(texto)).casefold().strip()
@@ -47,14 +57,17 @@ def municipios() -> pd.DataFrame:
 
 
 def buscar(texto: str, limite: int = 30) -> pd.DataFrame:
-    """Busca sem acento e sem diferenciar maiúsculas; começa-com antes de contém."""
+    """Busca sem acento e sem diferenciar maiúsculas: começa-com, depois contém e, por fim,
+    os municípios do estado cujo nome ou sigla foi digitado."""
     base = municipios()
     chave = normalizar(texto)
     if not chave:
         return base.head(0)
     comeca = base[base["chave"].str.startswith(chave)]
     contem = base[base["chave"].str.contains(chave, regex=False) & ~base.index.isin(comeca.index)]
-    return pd.concat([comeca, contem]).head(limite)
+    siglas = [s for s, nome in NOME_UF.items() if chave in (s.casefold(), normalizar(nome))]
+    do_estado = base[base["sg_uf"].isin(siglas) & ~base.index.isin(comeca.index.union(contem.index))]
+    return pd.concat([comeca, contem, do_estado]).head(limite)
 
 
 def parecidos(texto: str, n: int = 5) -> list:

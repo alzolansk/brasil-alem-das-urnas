@@ -53,13 +53,34 @@ def frase_resumo(nome, uf, ano, turno, aptos, comparecimento_pct, abstencoes_pct
     )
 
 
-def leitura_rapida(comp_delta_uf, comp_delta_br, comp_delta_base, bn_pct, bn_delta_br) -> list:
-    """Três itens: × estado, × 2022 (ou × Brasil, se não houver 2022) e brancos+nulos."""
-    segundo = (
-        evolucao("O comparecimento", comp_delta_base)
-        if comp_delta_base is not None and comp_delta_base == comp_delta_base
-        else comparar("O comparecimento", comp_delta_br, "br")
-    )
+def _ponto(texto: str) -> str:
+    """Fecha a frase sem duplicar o ponto de 'p.p.'."""
+    return texto if texto.endswith(".") else texto + "."
+
+
+def _tem(valor) -> bool:
+    return valor is not None and valor == valor
+
+
+def leitura_rapida(
+    comp_delta_uf, comp_delta_br, comp_delta_base, bn_pct, bn_delta_br,
+    comp_delta_br_2022=None, nome=None,
+) -> list:
+    """Três itens: × estado, × 2022 (ou × Brasil, se não houver 2022) e brancos+nulos.
+
+    Com `comp_delta_br_2022` e `nome`, se o município mudou de lado em relação à média do
+    Brasil entre 2022 e 2026, o item de 2022 conta essa virada.
+    """
+    antes, agora = classificar(comp_delta_br_2022), classificar(comp_delta_br)
+    if nome and _tem(comp_delta_br_2022) and {antes, agora} == {"alta", "queda"}:
+        segundo = (
+            f"Em 2022, {nome} votava {'mais' if antes == 'alta' else 'menos'} que a média "
+            f"do país. Em 2026, {'passou à frente' if agora == 'alta' else 'ficou para trás'}"
+        )
+    elif _tem(comp_delta_base):
+        segundo = evolucao("O comparecimento", comp_delta_base)
+    else:
+        segundo = comparar("O comparecimento", comp_delta_br, "br")
     return [
         comparar("O comparecimento", comp_delta_uf, "uf") + ".",
         segundo + ".",
@@ -67,6 +88,82 @@ def leitura_rapida(comp_delta_uf, comp_delta_br, comp_delta_base, bn_pct, bn_del
         + comparar("esse valor", bn_delta_br, "br")
         + ".",
     ]
+
+
+def manchete_explore(nome, comp_pct, comp_delta_br, abst_delta_uf) -> dict:
+    """Ex.: 'Campinas foi menos às urnas do que o Brasil: [8 em cada 10 eleitores votaram],
+    e a abstenção ficou acima da média do estado.'"""
+    antes = {
+        "alta": f"{nome} foi mais às urnas do que o Brasil:",
+        "queda": f"{nome} foi menos às urnas do que o Brasil:",
+        "igual": f"{nome} votou na mesma proporção que o Brasil:",
+    }[classificar(comp_delta_br)]
+    depois = {
+        "queda": ", e a abstenção ficou abaixo da média do estado.",
+        "alta": ", e a abstenção ficou acima da média do estado.",
+        "igual": ", e a abstenção ficou na média do estado.",
+    }[classificar(abst_delta_uf)]
+    return {
+        "antes": antes,
+        "destaque": f"{round(comp_pct / 10)} em cada 10 eleitores votaram",
+        "depois": depois,
+    }
+
+
+def _comparecimento_mudou(delta_pp) -> str:
+    classe = classificar(delta_pp)
+    if classe == "igual":
+        return "ficou praticamente igual"
+    return f"{'subiu' if classe == 'alta' else 'caiu'} {_modulo(delta_pp)}"
+
+
+def _brancos_nulos_mudaram(delta_pp, alta="subiram", queda="caíram") -> str:
+    classe = classificar(delta_pp)
+    if classe == "igual":
+        return "ficaram praticamente iguais"
+    return f"{alta if classe == 'alta' else queda} {_modulo(delta_pp)}"
+
+
+def manchete_comparativo(nome, aptos_base, aptos_comp, comp_delta, bn_delta) -> dict:
+    """Ex.: 'Campinas perdeu 7,8 mil eleitores e [ficou menos participativa]: ...'."""
+    dif = int(aptos_comp) - int(aptos_base)
+    if dif == 0:
+        antes = f"{nome} manteve o número de eleitores e"
+    else:
+        verbo = "ganhou" if dif > 0 else "perdeu"
+        antes = f"{nome} {verbo} {fmt.milhar_curto(abs(dif))} eleitores e"
+    destaque = {
+        "alta": "ficou mais participativa",
+        "queda": "ficou menos participativa",
+        "igual": "manteve o nível de participação",
+    }[classificar(comp_delta)]
+    depois = (
+        f": o comparecimento {_comparecimento_mudou(comp_delta)} e brancos e nulos "
+        f"{_brancos_nulos_mudaram(bn_delta)}"
+    )
+    return {"antes": antes, "destaque": destaque, "depois": _ponto(depois)}
+
+
+def entre_turnos(ano, comp_delta, bn_delta) -> str:
+    """Síntese do 1º para o 2º turno de uma eleição."""
+    return _ponto(
+        f"Em {ano}, o comparecimento {_comparecimento_mudou(comp_delta)} do 1º para o 2º turno, "
+        f"e brancos e nulos {_brancos_nulos_mudaram(bn_delta, 'aumentaram', 'recuaram')}"
+    )
+
+
+def votos(comparecimento, bn_delta_br) -> str:
+    """Texto do bloco 'E quem votou, votou em quê?'."""
+    classe = classificar(bn_delta_br)
+    if classe == "igual":
+        comparacao = "praticamente iguais à média nacional"
+    else:
+        posicao = "acima" if classe == "alta" else "abaixo"
+        comparacao = f"{_modulo(bn_delta_br)} {posicao} da média nacional"
+    return (
+        f"Dos {fmt.inteiro(comparecimento)} votos registrados, a grande maioria foi para um "
+        f"candidato. Os brancos e nulos ficaram {comparacao}."
+    )
 
 
 def em_quatro_anos(delta_pp) -> str:

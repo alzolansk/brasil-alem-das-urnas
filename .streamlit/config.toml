@@ -1,10 +1,24 @@
-# Cores extraídas do protótipo 2 (ver docs/design/tokens.md)
+# Tokens do protótipo (canvas "Brasil Além das Urnas"; ver docs/design/tokens.md)
 [theme]
 base = "light"
-primaryColor = "#1550A8"
+primaryColor = "#0B4EA2"
 backgroundColor = "#FFFFFF"
 secondaryBackgroundColor = "#F5F7FA"
-textColor = "#0B1F45"
+textColor = "#1B1B1B"
+font = "Inter"
+headingFont = "Raleway"
+borderColor = "#DCDFE4"
+baseRadius = "8px"
+
+[[theme.fontFaces]]
+family = "Inter"
+url = "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2"
+weight = "400 700"
+
+[[theme.fontFaces]]
+family = "Raleway"
+url = "https://fonts.gstatic.com/s/raleway/v37/1Ptug8zYS_SKggPNyC0ITw.woff2"
+weight = "500 800"
 
 [client]
 toolbarMode = "minimal"

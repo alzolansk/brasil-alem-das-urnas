@@ -3,7 +3,7 @@
 import pytest
 from streamlit.testing.v1 import AppTest
 
-from app.lib import data, fmt, narrativa
+from app.lib import charts, data, fmt, narrativa
 
 SAO_PAULO, LAGOA_DO_PIAUI = 3550308, 2205508
 
@@ -84,6 +84,12 @@ def test_formatacao_brasileira():
     assert fmt.pp(0.94) == "+0,9 p.p."
     assert fmt.pp(-0.94) == "−0,9 p.p."
     assert fmt.milhoes(34_812_345) == "34,8 milhões"
+    assert fmt.mil(873_613) == "874 mil"
+    assert fmt.mil(999) == "999"
+    assert fmt.mil(34_812_345) == "34,8 milhões"
+    assert fmt.milhar_curto(7_812) == "7,8 mil"
+    assert fmt.milhar_curto(31_600) == "31,6 mil"
+    assert fmt.milhar_curto(850) == "850"
 
 
 @pytest.mark.parametrize(
@@ -112,3 +118,103 @@ def test_modelos_de_frase_cobrem_alta_queda_e_igual():
 def test_leitura_rapida_tem_tres_itens_com_ou_sem_2022():
     assert len(narrativa.leitura_rapida(1.0, -1.0, 0.8, 4.0, 0.2)) == 3
     assert len(narrativa.leitura_rapida(1.0, -1.0, None, 4.0, 0.2)) == 3
+
+
+def test_virada_em_relacao_ao_brasil_na_leitura_rapida():
+    itens = narrativa.leitura_rapida(1.0, 0.8, 0.9, 4.0, 0.2, comp_delta_br_2022=-0.7, nome="X")
+    assert itens[1] == "Em 2022, X votava menos que a média do país. Em 2026, passou à frente."
+    itens = narrativa.leitura_rapida(1.0, -0.8, 0.9, 4.0, 0.2, comp_delta_br_2022=0.7, nome="X")
+    assert itens[1].endswith("Em 2026, ficou para trás.")
+    sem_virada = narrativa.leitura_rapida(1.0, 0.8, 0.9, 4.0, 0.2, comp_delta_br_2022=0.7, nome="X")
+    assert sem_virada[1] == "O comparecimento subiu 0,9 p.p. desde 2022."
+
+
+@pytest.mark.parametrize(
+    ("delta_br", "delta_uf", "antes", "depois"),
+    [
+        (1.0, -1.0, "X foi mais às urnas do que o Brasil:", ", e a abstenção ficou abaixo da média do estado."),
+        (-1.0, 1.0, "X foi menos às urnas do que o Brasil:", ", e a abstenção ficou acima da média do estado."),
+        (0.1, 0.1, "X votou na mesma proporção que o Brasil:", ", e a abstenção ficou na média do estado."),
+    ],
+)
+def test_manchete_explore(delta_br, delta_uf, antes, depois):
+    partes = narrativa.manchete_explore("X", 78.2, delta_br, delta_uf)
+    assert partes == {"antes": antes, "destaque": "8 em cada 10 eleitores votaram", "depois": depois}
+
+
+@pytest.mark.parametrize(
+    ("aptos", "comp", "bn", "esperado"),
+    [
+        ((880_000, 872_200), -1.7, 0.1,
+         "X perdeu 7,8 mil eleitores e [ficou menos participativa]: o comparecimento caiu 1,7 p.p. "
+         "e brancos e nulos ficaram praticamente iguais."),
+        ((800_000, 831_600), 0.9, -1.2,
+         "X ganhou 31,6 mil eleitores e [ficou mais participativa]: o comparecimento subiu 0,9 p.p. "
+         "e brancos e nulos caíram 1,2 p.p."),
+        ((1000, 1000), 0.2, 0.6,
+         "X manteve o número de eleitores e [manteve o nível de participação]: o comparecimento "
+         "ficou praticamente igual e brancos e nulos subiram 0,6 p.p."),
+    ],
+)
+def test_manchete_comparativo(aptos, comp, bn, esperado):
+    p = narrativa.manchete_comparativo("X", *aptos, comp, bn)
+    assert f"{p['antes']} [{p['destaque']}]{p['depois']}" == esperado
+
+
+@pytest.mark.parametrize(
+    ("comp", "bn", "esperado"),
+    [
+        (-0.6, -3.4, "Em 2022, o comparecimento caiu 0,6 p.p. do 1º para o 2º turno, e brancos e nulos recuaram 3,4 p.p."),
+        (0.8, 1.1, "Em 2022, o comparecimento subiu 0,8 p.p. do 1º para o 2º turno, e brancos e nulos aumentaram 1,1 p.p."),
+        (0.1, -0.2, "Em 2022, o comparecimento ficou praticamente igual do 1º para o 2º turno, e brancos e nulos ficaram praticamente iguais."),
+    ],
+)
+def test_entre_turnos(comp, bn, esperado):
+    assert narrativa.entre_turnos(2022, comp, bn) == esperado
+
+
+@pytest.mark.parametrize(
+    ("delta", "fim"),
+    [(1.7, "ficaram 1,7 p.p. acima da média nacional."),
+     (-1.7, "ficaram 1,7 p.p. abaixo da média nacional."),
+     (0.2, "ficaram praticamente iguais à média nacional.")],
+)
+def test_votos(delta, fim):
+    texto = narrativa.votos(685_549, delta)
+    assert texto.startswith("Dos 685.549 votos registrados, a grande maioria foi para um candidato.")
+    assert texto.endswith(fim)
+
+
+@pytest.mark.parametrize("regiao", [None, "Norte", "Sul"])
+def test_grade_ufs_mostra_27_e_esmaece_fora_da_regiao(regiao):
+    ufs = data.uf_brasil(2026, 1)
+    ufs = ufs[ufs["nivel"] == "UF"]
+    valores = dict(zip(ufs["localidade"], ufs["comparecimento_pct"].astype(float), strict=True))
+    realce = set(ufs["localidade"] if regiao is None else ufs[ufs["regiao"] == regiao]["localidade"])
+    fig = charts.grade_ufs(valores, "SP", realce)
+    pontos = fig.data[0]
+    assert len(pontos.customdata) == 27
+    opacidade = dict(zip(pontos.customdata, pontos.marker.opacity, strict=True))
+    assert {s for s, o in opacidade.items() if o == 1} == realce
+    assert len(fig.layout.shapes) == 27
+    assert {s.opacity for s in fig.layout.shapes} <= {1, 0.25}
+
+
+def test_inclinacao_usa_eixo_de_categorias():
+    fig = charts.inclinacao({"Município": (78.0, 76.4), "Estado": (79.0, 77.5), "Brasil": (79.2, 79.2)},
+                            {"Município": "X", "Estado": "SP", "Brasil": "Brasil"})
+    assert fig.layout.xaxis.type == "category"
+    assert list(fig.layout.xaxis.categoryarray) == ["2022", "2026"]
+
+
+def test_brasil_segundo_turno_2026_aguardando():
+    at = abrir("brasil")
+    at.selectbox(key="brasil_eleicao").set_value((2026, 2)).run()
+    assert not at.exception
+    assert any("Aguardando apuração" in m.value for m in at.markdown)
+
+
+def test_app_sem_caminho_abre_o_explore():
+    at = AppTest.from_file("app/Home.py", default_timeout=60).run()
+    assert not at.exception, [e.value for e in at.exception]
+    assert any("<h1>Explore seu município</h1>" in m.value for m in at.markdown)

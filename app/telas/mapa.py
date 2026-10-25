@@ -1,4 +1,6 @@
-"""Mapa eleitoral: grade de UFs e mapa dos municípios de uma UF."""
+"""Mapa eleitoral: grade de UFs, lista ordenada e mapa dos municípios de uma UF."""
+
+from html import escape
 
 import streamlit as st
 from lib import charts, data, fmt, ui
@@ -6,121 +8,183 @@ from lib import charts, data, fmt, ui
 REGIOES = ["Todas", "Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul"]
 NIVEIS = ["Estados", "Municípios"]
 VISOES = ["Mapa", "Lista ordenada"]
-SEM_BARRA = {"displayModeBar": False}
+DESCRICAO = {
+    ("Estados", "Mapa"): "Cada quadrado é um estado, posicionado aproximadamente como no mapa. "
+    "Clique para ver o detalhe.",
+    ("Estados", "Lista ordenada"): "Estados do maior para o menor valor. Clique em uma linha "
+    "para ver o detalhe.",
+    ("Municípios", "Mapa"): "Cada área é um município do estado selecionado.",
+    ("Municípios", "Lista ordenada"): "Municípios do estado selecionado, do maior para o menor valor.",
+}
 
 
 def _ver_municipios():
     st.session_state["mapa_nivel"] = "Municípios"
 
 
-def _painel_estado(sigla, linha, brasil, indicador, nome):
-    coluna = f"{indicador}_pct"
-    valor, media = linha[coluna], brasil[coluna]
-    posicao = linha[f"{indicador}_posicao_uf"]
-    ui.mostrar(
-        f"""<div class="cartao"><h3>Estado selecionado: {sigla}</h3>
-        <div class="info">{nome} · região {linha['regiao']}</div>
-        <div class="destaque">{fmt.pct(valor)}</div>
-        <div class="chips">{ui.chip('uf', 'vs. média nacional', valor - media)}</div>
-        <p class="frase">Média nacional: {fmt.pct(media)}.<br>
-        Posição: {int(posicao)}º entre as 27 UFs (1º = maior valor).</p></div>"""
+def _lista(df, coluna_nome, rotulo_nome, coluna_valor, rotulo_valor, chave, extra=None):
+    """Lista ordenada com barra; devolve a linha selecionada (ou None)."""
+    ordenado = df.sort_values(coluna_valor, ascending=False).reset_index(drop=True)
+    tabela = ordenado[[coluna_nome]].rename(columns={coluna_nome: rotulo_nome})
+    tabela.insert(0, "Posição", [f"{n}º" for n in range(1, len(ordenado) + 1)])
+    if extra:
+        for nome, serie in extra(ordenado).items():
+            tabela[nome] = serie
+    tabela["barra"] = ordenado[coluna_valor].astype(float)
+    tabela[rotulo_valor] = ordenado[coluna_valor].map(fmt.pct)
+    evento = st.dataframe(
+        tabela,
+        hide_index=True,
+        key=chave,
+        on_select="rerun",
+        selection_mode="single-row",
+        column_config={
+            "barra": st.column_config.ProgressColumn(
+                " ", min_value=0, max_value=float(tabela["barra"].max()), format=" ",
+            ),
+        },
     )
-    st.button(f"Ver municípios de {sigla}", on_click=_ver_municipios, width="stretch")
+    linhas = evento.selection.rows if evento and evento.selection else []
+    return ordenado.iloc[linhas[0]] if linhas else None
+
+
+def _painel_estado(sigla, linha, brasil, coluna, nome, ano, turno):
+    valor, media = linha[coluna], brasil[coluna]
+    diferenca = valor - media
+    classe = "up" if diferenca > 0 else "down" if diferenca < 0 else "flat"
+    posicao = linha[coluna.replace("_pct", "_posicao_uf")]
+    ui.mostrar(
+        f"""<section class="estado-sel"><span class="rotulo">Estado selecionado</span>
+        <h3>{escape(data.NOME_UF[sigla])}</h3><span class="valor">{fmt.pct(valor)}</span>
+        <span class="info">{escape(nome)} no {turno}º turno de {ano}</span>
+        <dl><dt>Média nacional</dt><dd>{fmt.pct(media)}</dd>
+        <dt>Diferença</dt><dd class="{classe}">{fmt.seta(diferenca)} {fmt.pp(diferenca)}</dd>
+        <dt>Posição entre as UFs</dt><dd>{int(posicao)}º de 27</dd>
+        <dt>Região</dt><dd>{escape(linha['regiao'])}</dd></dl></section>"""
+    )
+    with st.container(key="ver_municipios"):
+        st.button(f"Ver municípios de {sigla}", on_click=_ver_municipios, width="stretch")
+
+
+def _ranking(estados, coluna, regiao, anima):
+    top = estados.sort_values(coluna, ascending=False).head(5)
+    maior = float(top[coluna].max()) if not top.empty else 1
+    itens = "".join(
+        f"""<li><span>{n}</span><div><span>{escape(data.NOME_UF[s])}</span>
+        <div class="barra-h"><i style="width:{float(v) / maior * 100:.1f}%;--j:{n}"></i></div></div>
+        <span class="val">{fmt.pct(v)}</span></li>"""
+        for n, (s, v) in enumerate(zip(top["localidade"], top[coluna], strict=True), start=1)
+    )
+    titulo = "Brasil" if regiao == "Todas" else f"Região {regiao}"
+    ui.mostrar(
+        f"""<section class="ranking{anima}" style="--i:3"><h3>Maiores valores · {titulo}</h3>
+        <ol>{itens}</ol></section>"""
+    )
 
 
 def render():
     ui.cabecalho("mapa")
+    ui.abertura("mapa")
     mun = ui.municipio_ou_parar()
+    anima = ui.anima("mapa")
 
-    with st.expander("Filtros", expanded=True):
-        c1, c2, c3 = st.columns(3)
-        indicador = c1.selectbox(
+    filtros, centro, painel = st.columns([1.1, 2.4, 1.5], gap="large")
+    with filtros, st.container(key="mapa_filtros"):
+        indicador = st.radio(
             "Indicador",
             list(data.INDICADORES),
             format_func=lambda i: data.INDICADORES[i][0],
             key="mapa_indicador",
         )
-        ano, turno = c2.selectbox(
+        ui.mostrar(f'<div class="desc-indicador">{escape(data.INDICADORES[indicador][1])}</div>')
+        ano, turno = st.selectbox(
             "Eleição",
             data.ELEICOES,
-            format_func=lambda e: f"{e[1]}º turno de {e[0]}",
+            format_func=lambda e: f"{e[0]} · {e[1]}º turno",
             key="mapa_eleicao",
         )
-        regiao = c3.selectbox("Região", REGIOES, key="mapa_regiao")
-        c4, c5 = st.columns(2)
-        nivel = c4.radio("Nível", NIVEIS, horizontal=True, key="mapa_nivel")
-        visao = c5.radio("Visualização", VISOES, horizontal=True, key="mapa_visao")
-        st.caption(data.INDICADORES[indicador][1])
+        regiao = st.pills("Região", REGIOES, default="Todas", key="mapa_regiao") or "Todas"
+        nivel = st.radio("Nível", NIVEIS, horizontal=True, key="mapa_nivel")
 
     nome = data.INDICADORES[indicador][0]
     coluna = f"{indicador}_pct"
-    carregando = ui.esqueleto(3)
     try:
         ufs = data.uf_brasil(ano, turno)
     except Exception as exc:  # noqa: BLE001
-        carregando.empty()
-        ui.erro_leitura(exc)
+        with centro:
+            ui.erro_leitura(exc)
         ui.rodape()
         st.stop()
-    carregando.empty()
 
-    st.markdown(f"## {nome} por {'estado' if nivel == 'Estados' else 'município'}, "
-                f"{turno}º turno de {ano}")
     if ufs.empty:
-        ui.aguardando(f"O {turno}º turno de {ano} ainda não foi publicado pelo TSE.")
+        with centro:
+            ui.aguardando(
+                f"O {turno}º turno de {ano} ainda está sendo apurado",
+                "Assim que a totalização oficial for liberada, o mapa aparece aqui. Enquanto "
+                "isso, veja o 1º turno ou o 2º turno de 2022.",
+            )
         ui.rodape()
         st.stop()
 
     brasil = ufs[ufs["nivel"] == "BRASIL"].iloc[0]
-    estados = ufs[ufs["nivel"] == "UF"]
-    if regiao != "Todas":
-        estados = estados[estados["regiao"] == regiao]
-    por_sigla = estados.set_index("localidade")
-
-    siglas = sorted(por_sigla.index)
+    todos = ufs[ufs["nivel"] == "UF"]
+    estados = todos if regiao == "Todas" else todos[todos["regiao"] == regiao]
+    por_sigla = todos.set_index("localidade")
+    siglas = sorted(estados["localidade"])
     if st.session_state.get("mapa_uf") not in siglas:
-        padrao = mun["sg_uf"] if mun["sg_uf"] in siglas else siglas[0]
-        st.session_state["mapa_uf"] = padrao
+        st.session_state["mapa_uf"] = mun["sg_uf"] if mun["sg_uf"] in siglas else siglas[0]
 
-    esquerda, direita = st.columns([3, 2])
-    with esquerda:
+    with centro, st.container(key="mapa_cartao"):
+        cabeca, alternar = st.columns([3, 2], vertical_alignment="top")
+        with alternar:
+            visao = st.radio(
+                "Visualização", VISOES, horizontal=True, key="mapa_visao",
+                label_visibility="collapsed",
+            )
+        sigla_atual = st.session_state["mapa_uf"]
+        recorte = "estado" if nivel == "Estados" else f"município · {sigla_atual}"
+        with cabeca:
+            ui.mostrar(
+                f"""<div class="sub-cartao-wrap"><h2>{escape(nome)} por {recorte} · {turno}º turno
+                de {ano}</h2><span class="desc-mapa">{DESCRICAO[(nivel, visao)]}</span></div>"""
+            )
+
         if nivel == "Estados" and visao == "Mapa":
-            valores = {s: por_sigla.loc[s, coluna] for s in siglas}
-            fig = charts.grade_ufs(valores, nome, st.session_state["mapa_uf"])
+            valores = {s: float(por_sigla.loc[s, coluna]) for s in charts.GRADE_UF}
+            n = st.session_state.setdefault("mapa_cliques", 0)
+            fig = charts.grade_ufs(valores, sigla_atual, set(estados["localidade"]))
             evento = st.plotly_chart(
-                fig, on_select="rerun", selection_mode="points", key="mapa_grade",
-                config=SEM_BARRA,
+                fig, on_select="rerun", selection_mode="points", key=f"mapa_grade_{n}",
+                config=charts.SEM_BARRA,
             )
             pontos = evento.selection.points if evento and evento.selection else []
-            clicado = (
-                [s for s in charts.GRADE_UF if s in valores][pontos[0]["point_index"]]
-                if pontos
-                else None
-            )
-            if clicado and clicado != st.session_state.get("mapa_ultimo_clique"):
-                st.session_state["mapa_ultimo_clique"] = clicado
-                st.session_state["mapa_uf"] = clicado
+            if pontos:
+                clicado = pontos[0].get("customdata")
+                st.session_state["mapa_cliques"] = n + 1  # novo gráfico, sem seleção pendurada
+                if clicado in siglas:
+                    st.session_state["mapa_uf"] = clicado
                 st.rerun()
-            st.caption("Clique num quadrado para ver o estado, ou use a lista ao lado.")
+            limites, _ = charts.faixas(valores.values())
+            ui.mostrar(ui.legenda_mapa(nome, charts.FAIXAS, limites))
         elif nivel == "Estados":
-            tabela = estados.sort_values(coluna, ascending=False)[
-                ["localidade", "regiao", "aptos", coluna]
-            ].reset_index(drop=True)
-            tabela.insert(0, "Posição", tabela.index + 1)
-            tabela["aptos"] = tabela["aptos"].map(fmt.inteiro)
-            tabela[coluna] = tabela[coluna].map(fmt.pct)
-            tabela.columns = ["Posição", "UF", "Região", "Eleitores aptos", nome]
-            st.dataframe(tabela, hide_index=True, width="stretch")
+            escolhida = _lista(
+                estados, "localidade", "UF", coluna, nome, "mapa_lista",
+                extra=lambda o: {"Estado": o["localidade"].map(data.NOME_UF)},
+            )
+            if escolhida is not None and escolhida["localidade"] != st.session_state.get(
+                "mapa_lista_ultima"
+            ):
+                st.session_state["mapa_lista_ultima"] = escolhida["localidade"]
+                st.session_state["mapa_uf"] = escolhida["localidade"]
         else:
-            sigla = st.session_state["mapa_uf"]
-            df = data.municipios_da_uf(sigla, ano, turno)
+            df = data.municipios_da_uf(sigla_atual, ano, turno)
             if df.empty:
-                ui.aguardando("Sem municípios apurados para esta UF neste turno.")
+                ui.nota("Sem municípios apurados para esta UF neste turno.")
             elif visao == "Mapa":
-                fig = charts.coropletico(sigla, df, coluna, nome)
-                st.plotly_chart(fig, width="stretch", config=SEM_BARRA)
-                geo = data.malha(sigla)
-                ids = {f["properties"]["cd_municipio_ibge"] for f in geo["features"]}
+                fig, limites = charts.coropletico(sigla_atual, df, coluna)
+                st.plotly_chart(fig, config=charts.SEM_BARRA)
+                ui.mostrar(ui.legenda_mapa(nome, charts.FAIXAS, limites))
+                ids = {f["properties"]["cd_municipio_ibge"] for f in data.malha(sigla_atual)["features"]}
                 faltam = df[~df["cd_municipio_ibge"].isin(ids)]["nm_municipio"].tolist()
                 if faltam:
                     ui.nota(
@@ -128,23 +192,13 @@ def render():
                         "Aparece só na Lista ordenada."
                     )
             else:
-                tabela = df.sort_values(coluna, ascending=False)[
-                    ["nm_municipio", "aptos", coluna]
-                ].reset_index(drop=True)
-                tabela.insert(0, "Posição", tabela.index + 1)
-                tabela["aptos"] = tabela["aptos"].map(fmt.inteiro)
-                tabela[coluna] = tabela[coluna].map(fmt.pct)
-                tabela.columns = ["Posição", "Município", "Eleitores aptos", nome]
-                st.dataframe(tabela, hide_index=True, width="stretch")
+                _lista(df, "nm_municipio", "Município", coluna, nome, "mapa_lista_mun")
 
-    with direita:
-        sigla = st.selectbox("Estado", siglas, key="mapa_uf")
-        _painel_estado(sigla, por_sigla.loc[sigla], brasil, indicador, nome)
-
-    if nivel == "Estados" and visao == "Mapa":
-        with st.expander("Ver os mesmos dados em lista"):
-            tabela = estados.sort_values(coluna, ascending=False)[["localidade", coluna]]
-            tabela[coluna] = tabela[coluna].map(fmt.pct)
-            tabela.columns = ["UF", nome]
-            st.dataframe(tabela, hide_index=True, width="stretch")
+    with painel, st.container(key="mapa_painel"):
+        sigla = st.selectbox(
+            "Estado", siglas, key="mapa_uf",
+            format_func=lambda s: f"{s} · {data.NOME_UF[s]}",
+        )
+        _painel_estado(sigla, por_sigla.loc[sigla], brasil, coluna, nome, ano, turno)
+        _ranking(estados, coluna, regiao, anima)
     ui.rodape()

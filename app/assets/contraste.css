@@ -1,8 +1,28 @@
-:root { --bg: #000; --text: #fff; --navy: #fff; --blue: #7FB2FF; --green: #6FE39A; --yellow: #FFE14D; --orange: #FF9A73; --gray: #D1D5DB; --bg-soft: #111; --border: #fff; --muted: #E5E7EB; }
-.stApp, .stApp p, .stApp label, .stApp span, .stApp li, .stApp div { color: #fff; }
+/* Tema de alto contraste (D7). Carregado depois de style.css. */
+:root { --bg: #000; --text: #fff; --navy: #fff; --blue: #8DB8FF; --blue-hover: #B8D3FF; --blue-soft: #10213D; --blue-2t: #C9DDFF;
+  --green: #74E39E; --green-text: #74E39E; --green-soft: #000; --yellow: #FFE14D; --yellow-soft: transparent;
+  --yellow-tag: #000; --yellow-tag-text: #FFE14D; --yellow-tag-border: #FFE14D;
+  --orange: #FF9A73; --gray: #D1D5DB; --gray-text: #E5E7EB; --muted: #F3F4F6; --caption: #E5E7EB;
+  --border: #fff; --divider: #9CA3AF; --input-border: #fff; --bg-soft: #0A0A0A; --track: #222; --on-dark-muted: #E5E7EB; }
+.stApp, .stApp p, .stApp label, .stApp span, .stApp li, .stApp dt, .stApp dd, .stApp th, .stApp td { color: #fff; }
 .stApp { background: #000; }
+h1, h2, h3, .titulo, .numero { color: #fff !important; }
+.marca { background: none !important; text-decoration: underline 3px var(--yellow); text-underline-offset: 4px; }
+.heroi, .escopo, .cartao, .turno, .estado-sel, .ranking, .cartao-tabela, .votos, .nota, .aguardando,
+.st-key-filtros, .st-key-mapa_filtros, .st-key-mapa_cartao, .st-key-zonas, .st-key-tendencia { background: #000; border-color: #fff; }
 .escuro { background: #000; border: 2px solid #fff; }
-.rodape { background: #000; border-top: 2px solid #fff; }
-.selo { background: #000; color: #FFE14D; border-color: #FFE14D; }
-.barra span { color: #000; }
-[data-baseweb="select"] > div, input { background: #111 !important; color: #fff !important; }
+.st-key-rodape, .st-key-utilitaria { background: #000; border-color: #fff; }
+.st-key-rodape { border-top: 2px solid #fff; }
+.st-key-cabecalho { box-shadow: none; }
+.up { color: var(--blue) !important; } .down { color: var(--orange) !important; }
+.st-key-explore_eleicao [role="radiogroup"] label:has(input:checked), .st-key-mapa_nivel [role="radiogroup"] label:has(input:checked),
+.st-key-mapa_visao [role="radiogroup"] label:has(input:checked) { background: var(--yellow); }
+.st-key-explore_eleicao [role="radiogroup"] label:has(input:checked) p, .st-key-mapa_nivel [role="radiogroup"] label:has(input:checked) p,
+.st-key-mapa_visao [role="radiogroup"] label:has(input:checked) p { color: #000 !important; }
+.st-key-explore_eleicao [role="radiogroup"], .st-key-mapa_nivel [role="radiogroup"], .st-key-mapa_visao [role="radiogroup"] { background: #000; border-color: var(--yellow); }
+.st-key-explore_eleicao label p, .st-key-mapa_nivel [role="radiogroup"] label p, .st-key-mapa_visao label p { color: var(--yellow) !important; }
+.st-key-mapa_regiao [data-testid="stBaseButton-pillsActive"] { background: var(--yellow) !important; border-color: var(--yellow) !important; }
+.st-key-mapa_regiao [data-testid="stBaseButton-pillsActive"] p { color: #000 !important; }
+[data-baseweb="select"] > div, [data-baseweb="input"], input { background-color: #111 !important; color: #fff !important; }
+.anima, .anima * { animation: none !important; }
+.ponto-aguardando { animation: none !important; }
