@@ -40,12 +40,18 @@ def normalizar(texto: str) -> str:
     return unidecode(str(texto)).casefold().strip()
 
 
-@st.cache_data(show_spinner=False)
 def carregar(nome: str) -> pd.DataFrame:
-    return pd.read_parquet(MARTS / f"{nome}.parquet")
+    caminho = (MARTS / f"{nome}.parquet").resolve()
+    stat = caminho.stat()
+    return _carregar(str(caminho), stat.st_mtime_ns, stat.st_size)
 
 
 @st.cache_data(show_spinner=False)
+def _carregar(caminho: str, modificado_ns: int, tamanho: int) -> pd.DataFrame:
+    """A revisão do arquivo faz parte da chave, inclusive com cache já aquecido."""
+    return pd.read_parquet(caminho)
+
+
 def municipios() -> pd.DataFrame:
     """Um registro por município (sem exterior), com chave de busca sem acento."""
     df = carregar("mart_municipio_indicadores")

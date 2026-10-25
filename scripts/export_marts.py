@@ -9,6 +9,7 @@ from pathlib import Path
 import pandas as pd
 
 from scripts.modelagem import PROJETO, ROOT, conectar, consultar, validar
+from scripts.validar_marts import validar_pacote
 
 MARTS = {
     "mart_zona_indicadores": ["ano", "turno", "sg_uf", "cd_municipio_tse", "nr_zona"],
@@ -57,6 +58,7 @@ def exportar():
             nome = f"{tabela}.parquet"
             manifest["arquivos"][nome] = gravar_parquet(df, Path(temp) / nome, chaves)
             print(f"{nome}: {len(df)} linhas", flush=True)
+        validar_pacote(Path(temp), conferir_manifest=False)
         for nome in manifest["arquivos"]:
             (Path(temp) / nome).replace(destino / nome)
     # Parquets gerados fora do BigQuery (scripts.perfil_abstencao) mantêm a sua entrada.

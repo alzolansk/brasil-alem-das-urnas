@@ -22,7 +22,8 @@
 - Na eleição presidencial não há voto de legenda, então válidos = votos nominais.
 - **Variação de taxas** (2022 → 2026, 1º → 2º turno, município − UF): em **pontos percentuais (p.p.)**, que são a diferença simples entre duas porcentagens. Exemplo: de 78,5% para 79,4% = +0,9 p.p.
 - **Variação de contagens** (eleitores aptos): em % relativa.
-- **UF e Brasil**: razão das somas (ponderada pelos eleitores aptos), não média simples dos municípios.
+- **UF e Brasil**: razão das somas, não média simples dos municípios. Comparecimento e abstenção usam a soma dos aptos; indicadores de votos usam a soma do comparecimento.
+- **Brasil + Exterior**: soma das 27 UFs e de `ZZ`, uma única vez, a partir das linhas de município/zona. Nunca somar a linha nacional novamente com UFs e exterior. `ZZ` fica fora do mapa e dos rankings territoriais.
 
 ## Colunas do TSE usadas (`detalhe_votacao_munzona`)
 | Indicador | Coluna |
@@ -41,7 +42,11 @@ Conferidas nos arquivos de 2022 (1º e 2º turnos) e 2026 (1º turno), nas linha
 - comparecimento = válidos + brancos + nulos + anulados + apurados em separado (vale em 100% das linhas; anulados e apurados em separado são 0 para Presidente)
 - soma das zonas = total do município
 
-Totais do Brasil + Exterior (linha `BRASIL` das marts), 1º turno de 2022: 156.454.011 aptos e 123.682.372 de comparecimento, coerentes com os números oficiais divulgados pelo TSE (conferência formal pendente em `docs/validacao.md`).
+Totais do Brasil + Exterior (linha `BRASIL` das marts) reconferidos por download oficial em 25/10/2026 para 2022 (ambos os turnos) e 2026 (1º turno). Contagens, versões e hashes em `docs/validacao/conferencia_nacional_fontes.json`; reconciliação em `docs/validacao.md`.
+
+**Aptos em 2026:** a soma de `QT_APTOS` dos arquivos de resultados é **158.745.502 registros**, enquanto o eleitorado efetivo e a base de perfil têm **158.745.463 pessoas**. O [TSE documenta 39 registros de transferências temporárias mantidos também nas seções de origem](https://dadosabertos.tse.jus.br/dataset/resultados-2026). As marts preservam a soma do arquivo de resultados e seu denominador, sem subtrair uma constante nacional nem redistribuir eleitores entre municípios. A diferença de 39 registros é uma limitação conhecida desta fonte; os dois totais não devem ser apresentados como idênticos.
+
+**Seções não instaladas:** `QT_ELEITORES_SECOES_NAO_INSTALADAS` é um campo próprio no leiame do TSE (p. 5). Esses eleitores permanecem nos aptos, separados de `QT_ABSTENCOES`; a taxa usa o campo de abstenções, nunca `aptos − comparecimento`. São 657 em cada turno de 2022 (84 em Manaus e 573 no exterior) e 423 em 2026 T1 (exterior).
 
 ## Decisões tomadas
 | Tema | Decisão | Data |
@@ -123,7 +128,7 @@ As frases que não couberem nas 6 ficam de fora; os números continuam nos gráf
 Empates ficam com a primeira categoria na ordem oficial. As frases descrevem onde a ausência foi maior ou menor. Nunca atribuem motivos, e um teste barra palavras como "porque", "devido" e "motivo".
 
 ### Diferença para as outras telas
-As outras telas usam `detalhe_votacao_munzona` (resultados por seção). Em cada município, as duas bases do TSE têm aptos ligeiramente diferentes, mas somam o mesmo total no Brasil: 156.454.011 em 2022 e 158.745.463 em 2026. A abstenção difere em 0,02 p.p. na mediana; no 99º percentil, até 0,4 p.p.; no máximo, 3,4 p.p. (Melgaço/PA, 2022, 2º turno). Por isso, a tela avisa: "As taxas podem diferir entre as bases; normalmente a diferença é pequena, mas há exceções." Grupos e média vêm sempre da mesma base. Detalhes em `docs/validacao.md` e `docs/validacao/perfil_execucao.json`.
+As outras telas usam `detalhe_votacao_munzona` (resultados por município e zona). As bases somam 156.454.011 aptos em 2022; em 2026, os resultados somam 158.745.502 registros e o perfil soma 158.745.463 eleitores (diferença documentada acima). A abstenção difere em 0,02 p.p. na mediana; no 99º percentil, até 0,4 p.p.; no máximo, 3,4 p.p. (Melgaço/PA, 2022, 2º turno). Por isso, a tela avisa: "As taxas podem diferir entre as bases; normalmente a diferença é pequena, mas há exceções." Grupos e média vêm sempre da mesma base. Detalhes em `docs/validacao.md` e `docs/validacao/perfil_execucao.json`.
 
 ### Limitações específicas
 - Os indicadores descrevem **grupos agregados** de eleitores e não permitem identificar comportamentos individuais.

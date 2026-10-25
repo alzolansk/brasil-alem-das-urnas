@@ -1,5 +1,20 @@
 # Publicação e 2º turno de 2026 (Fase 4)
 
+## Atualização e cache das bases nacionais
+
+Antes da publicação, execute `python -m scripts.validar_marts`, `pytest -q` e
+`ruff check .`. Para reexecutar apenas a agregação nacional e seus benchmarks a partir
+da mart municipal versionada: `python -m scripts.regenerar_nacional` (requer dependências
+de desenvolvimento). O rebuild completo continua sendo o caminho para novas fontes.
+Versione os dois Parquets dependentes e o manifest junto da alteração SQL.
+
+O cache do app inclui caminho, data de modificação e tamanho de cada Parquet; uma troca
+de arquivo invalida sua leitura. Após publicar, confira na URL real a eleição/turno em
+Brasil em perspectiva, Explore e Mapa. Caso ainda apareçam 157,8 milhões e 20,8% em
+2026 T1, confira o branch/commit servido e reinicie o app no Streamlit Cloud se necessário.
+O valor local esperado da base de resultados é 158.745.502 e 21,083586%, com o exterior.
+Isso não comprova que o deploy foi atualizado: registre a conferência remota separadamente.
+
 ## 1. Quando o TSE publicar o 2º turno (4.1 e 4.2)
 ```bash
 python -m scripts.segundo_turno            # 0 = publicado e completo; 1 = ainda não

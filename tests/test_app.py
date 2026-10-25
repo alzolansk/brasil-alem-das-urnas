@@ -82,6 +82,23 @@ def test_tela_abre_sem_excecao(pagina):
     assert not at.exception, [e.value for e in at.exception]
 
 
+@pytest.mark.parametrize("eleicao", [(2022, 1), (2022, 2), (2026, 1)])
+def test_brasil_e_mapa_usam_mesmo_total_nacional(eleicao):
+    br = data.brasil(*eleicao)
+    at = abrir("brasil", estado={"brasil_eleicao": eleicao})
+    assert not at.exception
+    texto = " ".join(m.value for m in at.markdown)
+    assert f"{fmt.mil(br.aptos)} eleitores aptos" in texto
+    assert "Brasil + Exterior" in texto
+    assert fmt.pct(br.abstencoes_pct) in texto
+    mapa = abrir("mapa", estado={"mapa_eleicao": eleicao,
+                                 "mapa_indicador": "abstencoes", "mapa_regiao": "Sul"})
+    assert not mapa.exception
+    painel = next(m.value for m in mapa.markdown if 'class="estado-sel"' in m.value)
+    assert f"<dd>{fmt.pct(br.abstencoes_pct)}</dd>" in painel
+    assert "Brasil + Exterior" in painel
+
+
 def test_municipio_inexistente_mostra_aviso():
     at = abrir("explore", municipio=1)
     assert not at.exception

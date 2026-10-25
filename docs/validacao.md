@@ -1,10 +1,48 @@
 # Validação contra números oficiais do TSE
 
-Preenchimento manual (tarefas 2.4 e 4.3). Compare o valor calculado pelo pipeline com o painel oficial de resultados do TSE.
+## Reconferência nacional em 25/10/2026
+
+O problema informado na publicação reproduz exatamente a agregação territorial antiga: em 2026 T1, 157.828.968 aptos e 32.894.899 abstenções / aptos = 20,842118%. A SQL antiga (`83296a4`) tinha `WHERE NOT exterior` no total nacional. O commit `c842bbb` removeu esse filtro **e atualizou as duas marts dependentes**, os benchmarks e a documentação. Na revisão atual, os seis hashes do manifest conferiam antes de qualquer alteração; Brasil e benchmarks já continham 21,083586%. Portanto, **a hipótese de documentação atualizada sem regeneração não se confirmou no checkout atual**.
+
+Foi confirmada uma vulnerabilidade independente: `st.cache_data` usava apenas o nome da mart, sem versão/caminho do arquivo. Uma substituição do Parquet no mesmo processo podia devolver o conteúdo anterior. Agora a chave inclui caminho absoluto, modificação em nanossegundos e tamanho. A lista municipal derivada também é refeita a partir da leitura atualizada. Teste com cache aquecido reproduz a substituição e verifica a atualização sem limpeza manual.
+
+**Limite da investigação em produção:** a URL fornecida foi tentada, mas a ferramenta web não conseguiu acessá-la e nenhum navegador conectado estava disponível. Não foi possível inspecionar o commit, o branch, o cache nem os números vivos do processo remoto. Uma versão anterior ou um cache antigo explicam os valores relatados, mas não foram distinguidos em produção. Não houve commit, push, reinício nem deploy nesta revisão.
+
+### Antes (território) e depois (Brasil + Exterior)
+
+| Eleição / turno | Aptos sem ZZ | Abstenção sem ZZ | Aptos com ZZ | Comparecimento com ZZ | Abstenções com ZZ | Taxa com ZZ |
+|---|---:|---:|---:|---:|---:|---:|
+| 2022 T1 | 155.758.656 | 20,788721% | 156.454.011 | 123.682.372 | 32.770.982 | 20,946080% |
+| 2022 T2 | 155.758.433 | 20,426310% | 156.454.011 | 124.252.796 | 32.200.558 | 20,581484% |
+| 2026 T1 | 157.828.968 | 20,842118% | 158.745.502 | 125.275.835 | 33.469.244 | 21,083586% |
+
+“Antes” reconstrói a regra antiga, não uma medição remota nova. A regeneração local desta revisão reexecutou a SQL real de UF/Brasil e benchmark, partindo da mart municipal versionada. Preservou os totais já corrigidos; não inseriu valores de referência nem constantes corretivas. Motor, hashes e totais em `data/marts/manifest.json`, campo `reconciliacao_nacional`.
+
+### Fontes oficiais e diferenças
+
+- Downloads novos dos arquivos `detalhe_votacao_munzona` de [2022](https://dadosabertos.tse.jus.br/dataset/resultados-2022) e [2026](https://dadosabertos.tse.jus.br/dataset/resultados-2026): todos os campos de contagem nacionais coincidem com as marts. Evidência reproduzível: `python -m scripts.conferir_fontes_nacionais`; saída em `docs/validacao/conferencia_nacional_fontes.json`.
+- 2022: a [totalização oficial do primeiro turno](https://www.tse.jus.br/comunicacao/noticias/2022/Outubro/100-das-secoes-totalizadas-confira-como-ficou-o-quadro-eleitoral-apos-o-1o-turno) confirma 156.454.011 aptos e 123.682.372 comparecimentos. A [totalização do segundo turno](https://www.tse.jus.br/comunicacao/noticias/2022/Outubro/100-das-secoes-totalizadas-confira-como-ficou-o-quadro-eleitoral-apos-o-2o-turno/) confirma 156.454.011 e 124.252.796. Percentuais de notícias não substituem a razão dos campos inteiros do CSV.
+  No segundo turno, a notícia exibe 79,41% de comparecimento; a divisão dos próprios totais dá 79,418096%. Não se ajustou a razão para reproduzir a apresentação da notícia. A abstenção foi calculada diretamente de 32.200.558 / 156.454.011, preservando separadamente os 657 eleitores de seções não instaladas.
+- 2026: o portal oficial documenta **39 registros de TTE ainda vinculados à origem**: resultados = 158.745.502 registros; eleitorado efetivo = 158.745.463. A diferença tem causa oficial e não deve ser corrigida subtraindo 39 arbitrariamente das localidades. Mantida a base de resultados, com a limitação explícita na metodologia.
+- O [TRE-MT](https://www.tre-mt.jus.br/comunicacao/noticias/2026/Outubro/mato-grosso-registra-menor-indice-de-abstencao-dos-ultimos-quatro-pleitos-presidenciais) informa, para a base de comparecimento/perfil de 2026 T1, 158.745.463 aptos, 125.277.230 presentes e 33.468.233 ausentes. Os resultados têm +39 aptos, −1.395 presentes e +1.011 abstenções, com 423 eleitores de seções não instaladas separados. Não misturar numerador de perfil com denominador de resultados.
+- O arquivo de 2026 baixado agora tem geração em 25/10/2026 e hash diferente do bruto anterior. As contagens por zona foram comparadas; os totais nacionais coincidem. Não houve troca silenciosa do arquivo bruto. O segundo turno de 2026 não está no download e continua indisponível.
+- Leiame oficial distribuído nos ZIPs, cópia em `docs/fontes/tse/leiame_detalhe_votacao_munzona_2022.pdf`, pp. 1 e 5: `BR` é nacional e `ZZ` é exterior; eleitores de seções não instaladas possuem campo próprio. O parser ignora linhas agregadas `BR` e admite apenas as UFs e `ZZ` como folhas; siglas sem regra fazem a ingestão falhar.
+
+### Verificações reproduzíveis
+
+`python -m scripts.validar_marts` confere os Parquets efetivamente servidos: chaves, hashes, uma linha nacional, 27 UFs, um exterior, todas as contagens zona = município = UF + exterior = Brasil, todas as taxas pela razão das somas, benchmark e deltas nacionais, exclusão territorial e seções não instaladas. O export do BigQuery aplica a mesma validação **antes** de substituir as marts. `python -m scripts.regenerar_nacional` regenera as duas marts dependentes localmente com a SQL do projeto, sem acesso ao GCP.
+
+Os testes de regressão também injetam exterior ausente/duplicado, média simples e benchmark antigo e exigem rejeição. Os testes AppTest cobrem as páginas e filtros existentes. AppTest não valida pixels/CSS nem comprova o estado do serviço publicado.
+
+Resultado desta revisão: `python -m pytest -q` **127 passaram**, incluindo as três eleições/turnos disponíveis em Brasil em perspectiva e Mapa com filtro regional, além de Explore, Comparativo e demais telas. `python -m ruff check .`, `git diff --check` e `python -m scripts.validar_marts` passaram. Houve um aviso do ambiente sobre versões de dependências de `requests`; os downloads oficiais e testes concluíram. Não foi executada modelagem no BigQuery nem validação visual em navegador nesta revisão.
+
+## Registro anterior de conferência com o painel de perfil
+
+Os registros abaixo foram mantidos como histórico da comparação com outra base, não como metas de ajuste.
 
 | Data | Eleição | Turno | Recorte | Indicador | Pipeline | TSE oficial | Diferença | OK? | Observação |
 |---|---|---|---|---|---|---|---|---|---|
-| 25/10/2026 | 2022 | 1º | Brasil (com exterior) | Eleitores aptos | 156.454.011 | 156.454.0xx (cortado na captura) | a confirmar | ? | Soma BRASIL + EXTERIOR; teste 06 já confere este valor |
+| 25/10/2026 | 2022 | 1º | Brasil (com exterior) | Eleitores aptos | 156.454.011 | 156.454.011 | 0 | OK | Linha BRASIL já contém EXTERIOR; nunca somar as duas |
 | 25/10/2026 | 2022 | 1º | Brasil (com exterior) | Comparecimento | 123.682.372 | 123.714.335 | −31.963 (−0,026%) | ❌ | Idem |
 | 25/10/2026 | 2022 | 1º | Brasil (com exterior) | Abstenção | 32.770.982 (20,95%) | 20,95% | 0,00 p.p. | ✅ | Linha `BRASIL` da mart (Brasil + Exterior). 32.771.639 = aptos − comparecimento, que inclui os 657 eleitores de seções não instaladas |
 | 25/10/2026 | 2026 | 1º | Brasil (com exterior) | Abstenção | 33.469.244 (21,08%) | 33,4 milhões (21,08%) | 0,00 p.p. | ✅ | Antes da inclusão do exterior na linha `BRASIL`, a mart dava 32.894.899 (20,84%) |

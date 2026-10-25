@@ -66,4 +66,4 @@ ibge:
 
 filtros:
   cargo: "Presidente"   # valor exato de DS_CARGO
-  excluir_uf: ["ZZ"]    # exterior: fora do mapa e da média "Brasil"; mostrado à parte (docs/metodologia.md)
+  excluir_uf: ["ZZ"]    # exterior: fora do mapa/rankings; incluído uma vez no Brasil

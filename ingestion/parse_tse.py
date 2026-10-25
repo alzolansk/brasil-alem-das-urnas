@@ -24,6 +24,9 @@ CONTAGENS = {
 COLUNAS_CONTAGEM = list(CONTAGENS.values())
 
 ID_ZONA = ["ano", "turno", "sg_uf", "cd_municipio_tse", "nr_zona"]
+UFS_TERRITORIAIS = frozenset(
+    "AC AL AM AP BA CE DF ES GO MA MG MS MT PA PB PE PI PR RJ RN RO RR RS SC SE SP TO".split()
+)
 
 
 def _ler_csv(zip_path: Path, ano: int) -> pd.DataFrame:
@@ -45,6 +48,11 @@ def parse_zona(zip_path: Path, ano: int, cargo: str | None = None) -> pd.DataFra
     cargo = cargo or carregar_sources()["filtros"]["cargo"]
     bruto = _ler_csv(zip_path, ano)
     bruto = bruto[bruto["DS_CARGO"] == cargo]
+    # O arquivo BRASIL já contém as UFs e ZZ. Linhas nacionais (BR) não são folhas.
+    desconhecidas = set(bruto["SG_UF"]) - UFS_TERRITORIAIS - {"ZZ", "BR"}
+    if desconhecidas:
+        raise ValueError(f"UFs sem regra de agregação: {sorted(desconhecidas)}")
+    bruto = bruto[bruto["SG_UF"].isin(UFS_TERRITORIAIS | {"ZZ"})]
     if bruto.empty:
         raise ValueError(f"Nenhuma linha de {cargo!r} em {zip_path}")
 

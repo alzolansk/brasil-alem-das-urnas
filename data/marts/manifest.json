@@ -59,7 +59,7 @@
     },
     "mart_uf_brasil_indicadores.parquet": {
       "linhas": 87,
-      "sha256": "d1d09cbab4581cde189dcbeca2255b850eef60be64f37964d6bf62b96432ec06"
+      "sha256": "eb20cd66f3d863a077892dc8fe5bbcd29e2315f6af802b6a2c0311b4efcc18ea"
     },
     "mart_municipio_comparativo.parquet": {
       "linhas": 22282,
@@ -67,11 +67,67 @@
     },
     "mart_municipio_benchmark.parquet": {
       "linhas": 16711,
-      "sha256": "47c03360dc2aeab86e4adeb537ef92c7450fc71ecc316f07b002f2f0dc624de2"
+      "sha256": "2cd3bfe253470169144579d641424d0efc49fab4ea11bb313bad24e94d549dbd"
     },
     "mart_perfil_abstencao.parquet": {
       "linhas": 558356,
       "sha256": "a631083af30bbacce133023807c7caaad0500dadc8b6b24cb31503c04d3f4cf2"
     }
+  },
+  "reconciliacao_nacional": {
+    "executado_em": "2026-10-25T21:23:11.598357+00:00",
+    "motor": "DuckDB / SQLGlot (SQL do projeto)",
+    "sql_sha256": {
+      "03_mart_03_uf_brasil_indicadores.sql": "49ed8474a7ec8d7cccfd031c8fe3bd77e352869da269349e19625144d19cb5bb",
+      "03_mart_05_municipio_benchmark.sql": "5247dd1671d8ecb6d4d284f30db6a1908e3b535eb077cd46c736177b3fc743e9"
+    },
+    "fonte_sha256": "190d41bdc14ab601ed664b5cca29323cb1dc7dd04138e148d87e2434bd12111d",
+    "totais": [
+      {
+        "ano": 2022,
+        "turno": 1,
+        "aptos": 156454011,
+        "comparecimento": 123682372,
+        "abstencoes": 32770982,
+        "validos": 118229719,
+        "brancos": 1964779,
+        "nulos": 3487874,
+        "anulados": 0,
+        "apurados_em_separado": 0,
+        "eleitores_secoes_nao_instaladas": 657,
+        "secoes": 496238,
+        "abstencoes_pct": 20.946079803604395
+      },
+      {
+        "ano": 2022,
+        "turno": 2,
+        "aptos": 156454011,
+        "comparecimento": 124252796,
+        "abstencoes": 32200558,
+        "validos": 118552353,
+        "brancos": 1769678,
+        "nulos": 3930765,
+        "anulados": 0,
+        "apurados_em_separado": 0,
+        "eleitores_secoes_nao_instaladas": 657,
+        "secoes": 496238,
+        "abstencoes_pct": 20.581484484919983
+      },
+      {
+        "ano": 2026,
+        "turno": 1,
+        "aptos": 158745502,
+        "comparecimento": 125275835,
+        "abstencoes": 33469244,
+        "validos": 119300788,
+        "brancos": 2300798,
+        "nulos": 3674249,
+        "anulados": 0,
+        "apurados_em_separado": 0,
+        "eleitores_secoes_nao_instaladas": 423,
+        "secoes": 517179,
+        "abstencoes_pct": 21.08358572578642
+      }
+    ]
   }
 }

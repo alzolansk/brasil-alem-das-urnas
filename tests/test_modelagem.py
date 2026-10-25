@@ -62,6 +62,14 @@ def test_razao_das_somas_e_exterior(db):
         FROM marts.mart_uf_brasil_indicadores WHERE ano=2022 AND turno=1
         GROUP BY nivel""").fetchall())
     assert totais == {"UF": 1010, "BRASIL": 1020, "EXTERIOR": 10}
+    br = db.execute("""SELECT abstencoes, abstencoes_pct,
+        eleitores_secoes_nao_instaladas FROM marts.mart_uf_brasil_indicadores
+        WHERE ano=2022 AND turno=1 AND nivel='BRASIL'""").fetchone()
+    assert br == pytest.approx((480, 100 * 480 / 1020, 1))
+    benchmark = db.execute("""SELECT DISTINCT abstencoes_pct_brasil
+        FROM marts.mart_municipio_benchmark WHERE ano=2022 AND turno=1""").fetchall()
+    assert len(benchmark) == 1
+    assert benchmark[0][0] == pytest.approx(br[1])
 
 
 def test_ausencia_nao_vira_zero(db):
