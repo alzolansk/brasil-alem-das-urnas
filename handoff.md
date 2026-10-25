@@ -1,5 +1,11 @@
 # Handoff: loader e transição entre páginas (25/10/2026)
 
+## Pedido posterior: abertura mínima de 1,5 s
+
+O usuário pediu que toda abertura mostre a animação por 1,5 s, mesmo com dados carregados. Isso substitui a regra antiga da seção 11.3 e a decisão da primeira retomada de ocultar a camada com cache quente. O temporizador agora fica no CSS, começa na montagem no navegador e espera também o conteúdo; não há espera artificial no Python. Nova abertura/recarregamento repete a camada, navegação interna não. O ciclo visual de 3,6 s da referência continua igual. Alto contraste restaura o desenho completo e a primeira frase, além de desligar as animações. A spec e o planejamento do repositório registram a nova regra; o plano externo do Claude foi consultado como referência.
+
+Sondagem reproduzível: `python tests/browser/verificar_loader.py --saida <pasta>` com o Streamlit em `http://localhost:8599`, Playwright e Chrome instalados no ambiente de verificação. Mede exibição real, cache aquecido, recarregamento em rota interna, movimento reduzido, alto contraste e conteúdo que demora mais do que 1,5 s. Evidências atuais ficam no checklist `docs/design/aceite/README.md`. As seções abaixo são histórico das etapas anteriores.
+
 ## Retomada por Codex (25/10/2026)
 
 O estado experimental descrito abaixo foi resolvido: `Home.py` voltou a usar `st.markdown(..., unsafe_allow_html=True)` para CSS e camada. A camada agora se oculta imediatamente quando o rodapé chega, sem fade; a visibilidade espera 150 ms antes de aparecer para não piscar no quadro entre a retirada do rodapé antigo e a retirada da camada na primeira navegação. O teste no Chrome reproduziu esse piscar antes do ajuste e não o reproduziu depois.

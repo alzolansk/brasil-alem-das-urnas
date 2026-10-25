@@ -18,8 +18,9 @@ st.set_page_config(
 )
 
 # Loader do 1º acesso da sessão: vai para a tela antes de importar as telas (pandas, Plotly) e de
-# ler os dados, e some sozinho pelo CSS quando o rodapé chega. Os dois blocos existem em toda
-# execução para não mudar a posição dos elementos das telas entre uma execução e outra.
+# ler os dados. O CSS garante 1,5 s desde a montagem no navegador e espera o rodapé;
+# um sleep em Python não mediria o tempo realmente visível. Os dois blocos existem em
+# toda execução para não mudar a posição dos elementos entre uma execução e outra.
 st.markdown(
     f"<style>{(APP / 'assets' / 'loader.css').read_text(encoding='utf-8')}</style>",
     unsafe_allow_html=True,

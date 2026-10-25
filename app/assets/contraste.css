@@ -27,6 +27,11 @@ h1, h2, h3, .titulo, .numero { color: #fff !important; }
 .anima, .anima * { animation: none !important; }
 .ponto-aguardando { animation: none !important; }
 .bau-loader *, .bau-compacto * { animation: none !important; }
+/* Desligar a animação também exige retirar seus estados iniciais invisíveis. */
+.bau-loader .bau-contorno { stroke-dashoffset: 0; }
+.bau-loader .bau-cheio, .bau-compacto .bau-cheio { clip-path: polygon(0% 0%, 210% 0%, 0% 210%); opacity: 1; }
+.bau-loader .bau-ponto { transform: none; }
+.bau-loader .bau-msgs span:first-child { opacity: 1; }
 .bau-nome, .bau-compacto strong { color: #fff !important; }
 .bau-msgs span, .bau-compacto span { color: #fff !important; }
 .bau-compacto { background: #000; border-color: #fff; }

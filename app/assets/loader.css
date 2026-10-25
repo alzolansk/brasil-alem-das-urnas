@@ -56,22 +56,31 @@
 /* ---- tela cheia do 1º acesso (loader.sobreposicao_html) ---- */
 /* fora do fluxo: não empurra o cabeçalho nem recebe o espaçamento entre blocos */
 [data-testid="stElementContainer"]:has(.bau-sobre) { position: absolute; width: 0; height: 0; }
-.bau-sobre { position: fixed; inset: 0; z-index: 1000000; display: flex; align-items: center; justify-content: center; background: #FFFFFF; visibility: visible; transition: visibility 150ms step-end; }
+.bau-sobre { position: fixed; inset: 0; z-index: 1000000; display: flex; align-items: center; justify-content: center; background: #FFFFFF; visibility: visible; transition: visibility 150ms step-end; animation: bau-abertura-minima 1.5s linear; }
+/* Relógio de visibilidade no navegador: começa quando o HTML/CSS é montado, não
+   quando o Python envia o bloco. Durante 1,5 s prevalece sobre a regra de pronto.
+   Sem forwards: ao terminar, a camada continua visível se o conteúdo ainda falta.
+   Também roda em movimento reduzido/alto contraste: não move nem pisca nada,
+   apenas mantém a ilustração estática visível pelo mesmo tempo mínimo. */
+@keyframes bau-abertura-minima {
+  from, to { visibility: visible; pointer-events: auto; }
+}
 /* A primeira navegação pode retirar o rodapé um quadro antes de retirar a camada antiga.
    A espera só para exibir impede esse piscar; esconder continua imediato. */
-@starting-style { .bau-sobre { visibility: hidden; } }
 .bau-sobre .bau-loader { min-height: 0; }
-/* Some imediatamente quando o rodapé (último bloco de toda tela) chega. Sem fade:
-   o Streamlit pode montar o HTML só com a página pronta; animar a saída nesse caso
-   faria uma camada branca piscar sobre conteúdo que já pode ser usado. */
-.stApp:has(.st-key-rodape) .bau-sobre { visibility: hidden; pointer-events: none; transition: none; }
+/* Libera a página quando ambos terminam: tempo mínimo e montagem do conteúdo.
+   Erros inesperados também liberam a camada, mesmo sem chegar ao rodapé. */
+.stApp:has(.st-key-rodape, [data-testid="stException"]) .bau-sobre { visibility: hidden; pointer-events: none; transition: none; }
 /* na execução seguinte, a página anterior sai antes de o Home.py esvaziar este bloco: sem isso
    a camada reaparece por um quadro na primeira troca de aba */
 [data-stale="true"] .bau-sobre { display: none !important; }
 /* alto contraste (o contraste.css só chega com o cabeçalho): fundo preto, sem animação */
 .bau-sobre.contraste { background: #000; }
 .bau-sobre.contraste * { animation: none !important; }
-.stApp:has(.st-key-rodape) .bau-sobre.contraste { visibility: hidden; animation: none; }
+.bau-sobre.contraste .bau-contorno { stroke-dashoffset: 0; }
+.bau-sobre.contraste .bau-cheio { clip-path: polygon(0% 0%, 210% 0%, 0% 210%); opacity: 1; }
+.bau-sobre.contraste .bau-ponto { transform: none; }
+.bau-sobre.contraste .bau-msgs span:first-child { opacity: 1; }
 .bau-sobre.contraste .bau-nome, .bau-sobre.contraste .bau-msgs span { color: #fff; }
 .bau-sobre.contraste .bau-contorno { stroke: #fff; }
 .bau-sobre.contraste .bau-ponto { box-shadow: 0 0 0 2.5px #fff; }

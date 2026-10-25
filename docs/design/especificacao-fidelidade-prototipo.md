@@ -582,6 +582,8 @@ Os componentes recebem a classe no contêiner externo, por exemplo `<section cla
 ### 7.2 Regra 2: respeitar quem prefere menos movimento
 Todo `@keyframes` e toda `animation` ficam dentro de `@media (prefers-reduced-motion: no-preference)`. O alto contraste também desliga as animações (`contraste.css`: `.anima, .anima * { animation: none !important; }`).
 
+**Atualização solicitada em 25/10/2026:** o temporizador de visibilidade da abertura (seção 11) continua nos dois modos: mantém a ilustração estática por 1,5 s, sem movimento ou fade. Ele controla a duração da camada, não a animação do desenho.
+
 ### 7.3 Catálogo
 
 | # | Elemento | Efeito | Duração / atraso | Curva |
@@ -719,10 +721,14 @@ Atualize `docs/planejamento.md` (tarefa 3.0) e `docs/design/tokens.md` (seção 
 ### 11.1 O que é
 | Variante | Onde usar |
 |---|---|
-| **Tela cheia** (`.bau-loader`) | Primeira carga de cada tela, enquanto `data.*` lê os Parquets. Mapa de 240px que se desenha, se pinta na diagonal (verde, amarelo, azul) e acende 8 capitais. Embaixo: nome, 3 frases que se revezam e barra de progresso tricolor. Ciclo de 3,6s |
+| **Tela cheia** (`.bau-loader`) | Abertura/recarregamento do site, inclusive por link direto a uma tela; mínimo de 1,5 s no navegador, mesmo com dados carregados. Navegação interna usa transição lateral, sem repetir a abertura. Mapa de 240px que se desenha, se pinta na diagonal (verde, amarelo, azul) e acende 8 capitais. Embaixo: nome, 3 frases que se revezam e barra de progresso tricolor. Ciclo visual de 3,6s preservado |
 | **Compacto** (`.bau-compacto`, com `.escuro` opcional) | Partes que carregam depois da página, como o choropleth de municípios no Mapa. Mapa de 48px que se pinta em loop, com título e frase ao lado |
 
 ### 11.2 Implementação
+**Atualização de arquitetura e tempo (pedido do usuário em 25/10/2026):** o componente foi extraído para `app/lib/loader.py` e `app/assets/loader.css`, injetados por `Home.py` antes dos imports pesados. O CSS mantém `.bau-sobre` visível por 1,5 s desde sua montagem no navegador, e também espera a chegada do rodapé. Erros inesperados liberam a camada após o mínimo. Não usar `time.sleep` no servidor: ele não mede a exibição no navegador. O compacto do Mapa espera o SVG do Plotly da execução atual. Alto contraste deve desligar o movimento **e restaurar o estado completo** do contorno, preenchimento, capitais e primeira frase.
+
+Os passos abaixo registram a montagem original do componente; os locais dos arquivos e o ciclo de exibição atuais são os descritos acima.
+
 1. Cole o conteúdo de `docs/design/loader/loader.css` no fim de `app/assets/style.css`.
 2. Em `app/lib/ui.py`, crie a constante `CONTORNO_BR` com o atributo `d` do path (é o mesmo da logo) e as funções:
    - `loader_html() -> str`: devolve o HTML do bloco `.bau-loader` de `loader.html`, usando `CONTORNO_BR` nos 2 paths e gerando os 8 `.bau-ponto` a partir de uma lista `CAPITAIS = [(36.8, 23.6), (63.9, 19.6), (86.1, 25.9), (92.6, 35.2), (46.0, 53.3), (65.4, 53.8), (68.4, 72.0), (57.6, 87.5)]`, com `--d` igual ao índice.
@@ -741,7 +747,7 @@ Atualize `docs/planejamento.md` (tarefa 3.0) e `docs/design/tokens.md` (seção 
 5. Se a busca de município ficar sem resultado ou a página parar com erro, o loader precisa sumir. Confira se todo `st.stop()` vem **depois** de `carregando.empty()`; hoje já é assim nas 4 telas.
 
 ### 11.3 Regras
-- **Não atrase a página de propósito.** O loader aparece só enquanto os dados carregam de verdade. Com o cache quente, ele pisca rápido ou nem aparece, e isso está certo.
+- **Mínimo de 1,5 s na abertura, mesmo com cache quente**, conforme pedido do usuário em 25/10/2026; substitui a regra anterior de não atrasar a página. Os dados carregam normalmente em paralelo. A camada sai quando o mínimo **e** a montagem do conteúdo terminam. O ciclo visual de 3,6 s não é acelerado para caber nesse mínimo: uma abertura rápida pode mostrar apenas parte dele.
 - O `id` do gradiente (`bau-ld`) precisa ser único na página: gere-o uma vez no loader de tela cheia e, no compacto, defina um gradiente próprio (`bau-ld-mini`) para funcionar mesmo sem o loader grande na tela.
 - Acessibilidade: `role="status"`, `aria-live="polite"` e o texto escondido "Carregando dados eleitorais". As frases que se revezam ficam com `aria-hidden="true"`.
 - Movimento reduzido: tudo já está dentro de `@media (prefers-reduced-motion: no-preference)`; sem ele, o mapa aparece completo e parado.
@@ -749,8 +755,9 @@ Atualize `docs/planejamento.md` (tarefa 3.0) e `docs/design/tokens.md` (seção 
 - Confira se o `st.markdown` do Streamlit 1.58 mantém o atributo `pathLength` do SVG. Se ele for removido, troque `stroke-dasharray: 1` por `stroke-dasharray: 420; stroke-dashoffset: 420` (o comprimento aproximado do contorno no viewBox) e ajuste o keyframe `bau-tracar`.
 
 ### 11.4 Aceite
-- [ ] Loader de tela cheia aparece ao abrir cada tela com o cache frio (reinicie o app para testar)
-- [ ] Some assim que os dados chegam, sem deixar espaço em branco
+- [ ] Loader de tela cheia aparece por pelo menos 1,5 s em toda abertura/recarregamento, com cache frio ou quente, inclusive em rota interna
+- [ ] Some após o mínimo e a chegada do conteúdo, sem deixar espaço em branco; continua visível se o carregamento levar mais tempo
+- [ ] Não reaparece na troca de abas; transição lateral respeita a direção da navegação
 - [ ] Compacto aparece no Mapa ao trocar para "Municípios"
 - [ ] Com "reduzir movimento" ativado no sistema, fica parado
 - [ ] Testes continuam passando

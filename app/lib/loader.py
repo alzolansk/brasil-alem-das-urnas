@@ -67,8 +67,11 @@ def loader_compacto_html(titulo: str, texto: str, escuro: bool = False,
 
 
 def sobreposicao_html(contraste: bool = False) -> str:
-    """Loader de tela cheia do 1º acesso. Some sozinho (CSS em loader.css) quando o rodapé,
-    último bloco de toda tela, chega à página: não depende de o Python retirá-lo."""
+    """Loader do 1º acesso: visível por no mínimo 1,5 s desde a montagem no navegador.
+
+    O CSS só o oculta após esse mínimo e a chegada do rodapé (ou de um erro).
+    Navegação interna não o recria; uma nova abertura/recarregamento reinicia o ciclo.
+    """
     classe = "bau-sobre contraste" if contraste else "bau-sobre"
     return f'<div class="{classe}">{loader_html("bau-ld-sobre")}</div>'
 

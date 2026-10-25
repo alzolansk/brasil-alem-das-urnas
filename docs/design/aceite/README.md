@@ -10,6 +10,7 @@ Capturas feitas com Playwright no Chrome instalado (a extensão Claude in Chrome
 | `e100-detalhe_campinas_*` | Bloco de 100 eleitores com o detalhe aberto |
 | `e100-indisponivel_boa-esperanca_*` | Estado indisponível (Boa Esperança do Norte/MT em 2022) |
 | `loader_parado*.png` / `loader_animado.png` | Loader de tela cheia e compactos, sem e com movimento |
+| `loader-1500ms/*.png` / `loader-1500ms/tempos.json` | Abertura real com mínimo de 1,5 s: servidor frio/aquecido, movimento reduzido e alto contraste; tempos medidos no Chrome |
 
 ## Seção 9.2
 - [x] Logo nova no cabeçalho (favicon: não verificável em captura headless)
@@ -32,15 +33,18 @@ Capturas feitas com Playwright no Chrome instalado (a extensão Claude in Chrome
 ## Seção 11.4 (loader)
 - [x] `pathLength` preservado pelo `st.markdown` do Streamlit 1.58 (conferido no DOM); `role="status"`
 - [x] Com movimento reduzido fica parado (`animation-name: none`); sem ele, `bau-tracar` roda
-- [x] Camada inicial some imediatamente quando o rodapé chega (Chrome/Playwright, servidor frio e aquecido); AppTest verifica presença só na primeira execução, sem provar visibilidade no navegador
-- [x] Servidor frio: camada visível de ~1,8 a ~2,9 s, após a montagem do HTML/CSS; não cobre a inicialização do frontend do Streamlit
-- [x] Servidor aquecido: se o rodapé já está pronto quando o HTML monta, camada permanece oculta; sem fade branco
+- [x] Camada inicial espera **1,5 s no navegador e conteúdo pronto**; o pedido atual substitui a regra antiga de sumir imediatamente. AppTest verifica presença só na primeira execução, sem provar duração no navegador
+- [x] Servidor reiniciado: 1.510 ms de exibição; aquecido: 1.516 ms; recarregamento de rota interna: 1.518 ms. Sondagem por mutações do DOM e quadros, com tolerância de um quadro a 60 Hz
+- [x] Conteúdo já pronto em cenário isolado: ~1,5 s (1.492 ms amostrados); conteúdo atrasado além do mínimo: camada permanece até a chegada dele (~2.160 ms no ensaio)
 - [x] Compacto visível ao trocar para "Municípios", oculto após desenhar o SVG do Plotly da execução atual (~220 ms visível no ensaio aquecido)
 - [x] Troca de abas sem camada inicial, inclusive a primeira; entrada pela direita (Explore → Mapa, Comparativo → Brasil) e esquerda (Mapa → Comparativo), 420 ms; topo sem deslocamento
 - [x] Chrome com movimento reduzido: contorno sem animação e navegação sem `entrar-*`; largura 390 px com alto contraste: camada preta, oculta ao concluir, sem rolagem horizontal (também conferido em 1280 px)
+- [x] Abertura parada em 390 px: 1.557 ms com movimento reduzido e 1.561 ms com alto contraste; mapa completo, oito capitais e primeira frase visíveis. Sem movimento, o temporizador continua contando
 - [ ] Cobrir o intervalo anterior à montagem do HTML/CSS: limitação ainda presente do Streamlit; podem aparecer widgets sem estilo personalizado
 
-Retomada verificada em 25/10/2026 com Chrome local via Playwright; 85 testes e Ruff passam. As imagens `loader_*.png` anteriores mostram o componente isolado e não foram refeitas nesta retomada.
+Regra de 1,5 s verificada em 25/10/2026 com Chrome local via Playwright; 85 testes e Ruff passam. Capturas atuais em `loader-1500ms/`, feitas aproximadamente um segundo após a camada aparecer (o ciclo visual de 3,6 s ainda está em andamento nas versões animadas). As imagens `loader_*.png` anteriores mostram o componente isolado.
+
+Reproduzir: iniciar `python -m streamlit run app/Home.py --server.port 8599 --server.headless true --server.runOnSave false`, depois `python tests/browser/verificar_loader.py --saida <pasta>`. A sondagem usa Playwright e o Chrome instalados no ambiente de aceite; eles não são dependências do app nem da suíte pytest. Para o primeiro cenário representar cache frio, reiniciar o processo do Streamlit antes de executar. O teste também confere que a camada não reaparece ao navegar para Mapa e Comparativo.
 
 ## Seção 12.9 (100 eleitores)
 - [x] Entre a grade de cartões e "Zona por zona"; barra empilhada removida

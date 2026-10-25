@@ -1,0 +1,167 @@
+{
+  "primeira_abertura": {
+    "visivel_ms": 1510,
+    "quadros": [
+      {
+        "ms": 27.5,
+        "visivel": false,
+        "relogio": null
+      },
+      {
+        "ms": 972.5,
+        "visivel": true,
+        "relogio": [
+          {
+            "nome": "bau-abertura-minima",
+            "tempo": 0
+          }
+        ]
+      },
+      {
+        "ms": 2482.39999999851,
+        "visivel": false,
+        "relogio": []
+      }
+    ]
+  },
+  "cache_aquecido": {
+    "visivel_ms": 1516,
+    "quadros": [
+      {
+        "ms": 115.79999999701977,
+        "visivel": false,
+        "relogio": null
+      },
+      {
+        "ms": 1710.8999999985099,
+        "visivel": true,
+        "relogio": [
+          {
+            "nome": "bau-abertura-minima",
+            "tempo": 0
+          }
+        ]
+      },
+      {
+        "ms": 3226.7999999970198,
+        "visivel": false,
+        "relogio": []
+      }
+    ]
+  },
+  "recarregar_rota_interna": {
+    "visivel_ms": 1518,
+    "quadros": [
+      {
+        "ms": 29.799999997019768,
+        "visivel": false,
+        "relogio": null
+      },
+      {
+        "ms": 423.70000000298023,
+        "visivel": true,
+        "relogio": [
+          {
+            "nome": "bau-abertura-minima",
+            "tempo": 0
+          }
+        ]
+      },
+      {
+        "ms": 1941.8999999985099,
+        "visivel": false,
+        "relogio": []
+      }
+    ]
+  },
+  "movimento_reduzido": {
+    "visivel_ms": 1557,
+    "quadros": [
+      {
+        "ms": 17.799999997019768,
+        "visivel": false,
+        "relogio": null
+      },
+      {
+        "ms": 2072.60000000149,
+        "visivel": true,
+        "relogio": [
+          {
+            "nome": "bau-abertura-minima",
+            "tempo": 0
+          }
+        ]
+      },
+      {
+        "ms": 3629.2999999970198,
+        "visivel": false,
+        "relogio": []
+      }
+    ]
+  },
+  "alto_contraste": {
+    "visivel_ms": 1561,
+    "quadros": [
+      {
+        "ms": 18.700000002980232,
+        "visivel": false,
+        "relogio": null
+      },
+      {
+        "ms": 1956.8999999985099,
+        "visivel": true,
+        "relogio": [
+          {
+            "nome": "bau-abertura-minima",
+            "tempo": 0
+          }
+        ]
+      },
+      {
+        "ms": 3518.10000000149,
+        "visivel": false,
+        "relogio": []
+      }
+    ]
+  },
+  "conteudo_pronto_True": {
+    "visivel_ms": 1492,
+    "quadros": [
+      {
+        "ms": 147.39999999850988,
+        "visivel": true,
+        "relogio": [
+          {
+            "nome": "bau-abertura-minima",
+            "tempo": 6.961999997019297
+          }
+        ]
+      },
+      {
+        "ms": 1639.5,
+        "visivel": false,
+        "relogio": []
+      }
+    ]
+  },
+  "conteudo_pronto_False": {
+    "visivel_ms": 2160,
+    "quadros": [
+      {
+        "ms": 131.10000000149012,
+        "visivel": true,
+        "relogio": [
+          {
+            "nome": "bau-abertura-minima",
+            "tempo": 6.966999999142715
+          }
+        ]
+      },
+      {
+        "ms": 2291.2000000029802,
+        "visivel": false,
+        "relogio": []
+      }
+    ]
+  }
+}
