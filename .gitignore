@@ -24,3 +24,7 @@ Thumbs.db
 
 # Intermediários da ingestão (recriados por ingestion/pipeline.py)
 data/interim/
+
+# Trabalhos locais fora do app
+motion/
+Claude outputs/
