@@ -192,7 +192,8 @@ def cabecalho(ativa: str) -> None:
                 "eleitorais públicos</span>"
             )
             with st.container(
-                horizontal=True, gap="medium", vertical_alignment="center", width="content"
+                key="util_links", horizontal=True, gap="medium", vertical_alignment="center",
+                width="content",
             ):
                 st.page_link(PAGINAS["acessibilidade"], label="Acessibilidade")
                 st.page_link(PAGINAS["dados"], label="Sobre os dados")

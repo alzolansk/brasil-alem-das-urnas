@@ -41,6 +41,7 @@ a { color: var(--blue); } a:hover { color: var(--blue-hover); }
 .st-key-utilitaria [data-testid="stPageLink-NavLink"] { padding: 0; min-height: 32px; background: transparent !important; }
 .st-key-utilitaria [data-testid="stPageLink-NavLink"] p { color: var(--blue); font-size: 13px !important; text-decoration: underline; }
 .st-key-utilitaria [data-testid="stCheckbox"] label p { font-size: 13px !important; color: var(--blue); }
+.st-key-util_links { flex-wrap: nowrap !important; }
 .faixa { display: grid; grid-template-columns: 3fr 1fr 3fr; height: 4px; }
 .faixa i:nth-child(1) { background: var(--green); } .faixa i:nth-child(2) { background: var(--yellow); } .faixa i:nth-child(3) { background: var(--blue); }
 .st-key-cabecalho { padding: 16px var(--miolo) 0;
@@ -96,6 +97,8 @@ a { color: var(--blue); } a:hover { color: var(--blue-hover); }
   margin: 0; padding: 0 18px; min-height: 40px; border-radius: 999px; display: flex; align-items: center; cursor: pointer; transition: background .15s, color .15s; }
 .st-key-explore_eleicao [role="radiogroup"] label > div:first-child, .st-key-e100_ano [role="radiogroup"] label > div:first-child, .st-key-mapa_nivel [role="radiogroup"] label > div:first-child,
 .st-key-mapa_visao [role="radiogroup"] label > div:first-child { display: none; }
+/* Streamlit 1.66: a bolinha fica um nível abaixo, ao lado do texto */
+.st-key-explore_eleicao [role="radiogroup"] label > div > div:first-child:not([data-testid="stMarkdownContainer"]), .st-key-e100_ano [role="radiogroup"] label > div > div:first-child:not([data-testid="stMarkdownContainer"]), .st-key-mapa_nivel [role="radiogroup"] label > div > div:first-child:not([data-testid="stMarkdownContainer"]), .st-key-mapa_visao [role="radiogroup"] label > div > div:first-child:not([data-testid="stMarkdownContainer"]) { display: none; }
 .st-key-explore_eleicao label p, .st-key-e100_ano label p, .st-key-mapa_nivel [role="radiogroup"] label p, .st-key-mapa_visao label p { color: var(--blue) !important; font-weight: 600 !important; font-size: 14px !important; text-transform: none !important; letter-spacing: 0 !important; }
 .st-key-explore_eleicao [role="radiogroup"] label:has(input:checked), .st-key-e100_ano [role="radiogroup"] label:has(input:checked), .st-key-mapa_nivel [role="radiogroup"] label:has(input:checked),
 .st-key-mapa_visao [role="radiogroup"] label:has(input:checked) { background: var(--blue); }
@@ -104,6 +107,10 @@ a { color: var(--blue); } a:hover { color: var(--blue-hover); }
 .st-key-explore_eleicao label:has(input:focus-visible), .st-key-mapa_nivel label:has(input:focus-visible),
 .st-key-mapa_visao label:has(input:focus-visible), .st-key-mapa_indicador label:has(input:focus-visible) { outline: 3px solid var(--yellow); outline-offset: 2px; }
 .st-key-mapa_visao [role="radiogroup"] { flex-wrap: nowrap; }
+/* coluna de filtros estreita: as duas opções do Nível dividem a largura */
+.st-key-mapa_nivel [role="radiogroup"] { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+.st-key-mapa_nivel [role="radiogroup"] label { justify-content: center; padding: 0 4px; }
+.st-key-mapa_nivel [role="radiogroup"] label p { font-size: 13px !important; white-space: nowrap; }
 .st-key-mapa_visao label { white-space: nowrap; }
 
 /* indicador do mapa: rádio vertical em linhas */
@@ -306,6 +313,9 @@ table.tab .base { color: var(--caption); } table.tab .comp { font-weight: 600; }
   .grade-herois > .escuro { grid-column: 1 / -1; }
 }
 @media (max-width: 768px) {
+  .st-key-utilitaria [data-testid="stElementContainer"]:has(.util-texto) { display: none; }
+  .st-key-util_links { width: 100% !important; gap: 12px !important; justify-content: space-between; }
+  .st-key-util_links [data-testid="stPageLink-NavLink"] { min-height: 32px; }
   :root { --gutter: 16px; }
   .util-texto { display: none; }
   .st-key-nav_desktop { display: none; }
@@ -314,6 +324,8 @@ table.tab .base { color: var(--caption); } table.tab .comp { font-weight: 600; }
   button, [role="radio"], [data-testid="stPageLink-NavLink"] { min-height: 44px; }
 }
 @media (max-width: 640px) {
+  .st-key-explore_eleicao [role="radiogroup"] { display: grid; grid-template-columns: 1fr 1fr; width: 100%; border-radius: 22px; }
+  .st-key-explore_eleicao [role="radiogroup"] label { justify-content: center; padding: 0 8px; }
   .grade-herois { grid-template-columns: 1fr; }
   .stApp .abertura h1 { font-size: 28px; }
   .stApp .achado h2, .stApp .achado.menor h2 { font-size: 26px; }
