@@ -5,14 +5,31 @@ from pathlib import Path
 
 import streamlit as st
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+APP = Path(__file__).resolve().parent
+sys.path.insert(0, str(APP))
 
-import navegacao  # noqa: E402
+from lib import loader  # noqa: E402 - leve, sem pandas: vem antes do resto do app
 
 st.set_page_config(
     page_title="Brasil Além das Urnas",
-    page_icon=str(Path(__file__).resolve().parent / "assets" / "logo.svg"),
+    page_icon=str(APP / "assets" / "logo.svg"),
     layout="wide",
     initial_sidebar_state="collapsed",
 )
+
+# Loader do 1º acesso da sessão: vai para a tela antes de importar as telas (pandas, Plotly) e de
+# ler os dados, e some sozinho pelo CSS quando o rodapé chega. Os dois blocos existem em toda
+# execução para não mudar a posição dos elementos das telas entre uma execução e outra.
+st.markdown(
+    f"<style>{(APP / 'assets' / 'loader.css').read_text(encoding='utf-8')}</style>",
+    unsafe_allow_html=True,
+)
+sobreposicao = st.empty()
+if not st.session_state.get("_abriu"):
+    st.session_state["_abriu"] = True
+    contraste = st.session_state.get("alto_contraste", st.query_params.get("c") == "1")
+    sobreposicao.markdown(loader.sobreposicao_html(contraste), unsafe_allow_html=True)
+
+import navegacao  # noqa: E402
+
 navegacao.executar()

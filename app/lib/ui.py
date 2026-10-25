@@ -8,6 +8,7 @@ from pathlib import Path
 import streamlit as st
 
 from . import data, fmt
+from .loader import loader_html
 
 ASSETS = Path(__file__).resolve().parents[1] / "assets"
 PAGINAS: dict = {}  # preenchido por navegacao.py: chave -> st.Page
@@ -78,10 +79,40 @@ def _css_aba_ativa(ativa: str) -> str:
     )
 
 
-def injetar_css(ativa: str) -> None:
+ORDEM = [chave for chave, _ in ABAS + RODAPE]
+
+
+def direcao(anterior: str | None, atual: str) -> int:
+    """Lado de entrada da página nova, pela ordem das abas (rodapé depois delas):
+    1 = entra pela direita (ela fica à direita da anterior), -1 = pela esquerda, 0 = sem transição."""
+    if anterior not in ORDEM or atual not in ORDEM or anterior == atual:
+        return 0
+    return 1 if ORDEM.index(atual) > ORDEM.index(anterior) else -1
+
+
+def _css_transicao(sentido: int) -> str:
+    """Tudo abaixo do cabeçalho (menos o rodapé) desliza para dentro, vindo do lado `sentido`.
+
+    Só os blocos já desta execução (`data-stale` diferente de "true") recebem a animação: cada
+    um começa a deslizar quando o conteúdo novo chega, e a página antiga, ainda na tela até ser
+    substituída, fica parada. Os contêineres com chave ficam dentro de um stLayoutWrapper."""
+    if not sentido:
+        return ""
+    topo = '[data-testid="stLayoutWrapper"]:has(> .st-key-topo)'
+    novo = '[data-testid="stElementContainer"]:not([data-stale="true"])'
+    alvos = (f"{topo} ~ {novo}, "
+             f'{topo} ~ [data-testid="stLayoutWrapper"]:not(:has(> .st-key-rodape)) {novo}')
+    nome = "entrar-direita" if sentido > 0 else "entrar-esquerda"
+    return ("@media (prefers-reduced-motion: no-preference) { "
+            f"{alvos} {{ animation: {nome} 420ms cubic-bezier(.2,.7,.2,1) both; }} }}")
+
+
+def injetar_css(ativa: str, sentido: int = 0) -> None:
     css = _ler("style.css") + _css_aba_ativa(ativa)
     if st.session_state.get("alto_contraste"):
         css += _ler("contraste.css")
+    else:  # no alto contraste as animações ficam desligadas
+        css += _css_transicao(sentido)
     st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
 
 
@@ -181,7 +212,9 @@ def _selo() -> str:
 
 def cabecalho(ativa: str) -> None:
     _inicializar_estado()
-    injetar_css(ativa)
+    anterior = st.session_state.get("_pagina")
+    st.session_state["_pagina"] = ativa
+    injetar_css(ativa, direcao(anterior, ativa))
     with st.container(key="topo", gap=None):
         with st.container(
             key="utilitaria", horizontal=True, horizontal_alignment="distribute",
@@ -529,62 +562,6 @@ def aguardando(titulo: str, texto: str) -> None:
 
 def nota(texto: str) -> None:
     mostrar(f'<div class="nota">{escape(texto)}</div>')
-
-
-# Loader (seção 11 da especificação; referência em docs/design/loader/). Mesmo contorno da logo.
-CONTORNO_BR = (
-    "M33.9 0.3 L45.9 8.7 L57.1 2.3 L61.2 13.6 L65 16.7 L75.8 20 L90.6 23.1 L99 28.5 L99.7 34.1 "
-    "L90.6 46.9 L89.3 51.5 L88.8 59 L86 65.6 L81.6 72.6 L70.7 75.1 L65 84.1 L55.9 95.9 L52.6 100 "
-    "L47.2 93.1 L41.8 91 L51.5 83.3 L49.5 79.2 L46.2 70.8 L40.6 65.1 L39.8 55.4 L35.5 48.2 "
-    "L22.2 41.5 L11.2 41.8 L1.3 37.7 L2.6 32.3 L10.2 24.4 L11.7 16.2 L10.7 9.2 L17.9 10.5 L25.5 3.3 Z"
-)
-CAPITAIS = [(36.8, 23.6), (63.9, 19.6), (86.1, 25.9), (92.6, 35.2), (46.0, 53.3), (65.4, 53.8),
-            (68.4, 72.0), (57.6, 87.5)]
-MENSAGENS_LOADER = ["Contando eleitores de todos os municípios…", "Comparando 2022 com 2026…",
-                    "Pintando o mapa do Brasil…"]
-
-
-def _mapa_loader(tam: int, gid: str, contorno: str, capitais: bool) -> str:
-    """Brasil em verde, amarelo e azul que se pinta na diagonal, com o contorno por cima."""
-    grad = (f'<defs><linearGradient id="{gid}" x1="0" y1="0" x2="1" y2="1">'
-            '<stop offset="0" stop-color="#12753E"/><stop offset=".47" stop-color="#12753E"/>'
-            '<stop offset=".47" stop-color="#F5C400"/><stop offset=".59" stop-color="#F5C400"/>'
-            '<stop offset=".59" stop-color="#0B4EA2"/><stop offset="1" stop-color="#0B4EA2"/>'
-            "</linearGradient></defs>")
-    cheio = (f'<div class="bau-cheio"><svg viewBox="-4 -4 108 108" aria-hidden="true">{grad}'
-             f'<path d="{CONTORNO_BR}" fill="url(#{gid})" stroke="url(#{gid})" stroke-width="3" '
-             'stroke-linejoin="round"/></svg></div>')
-    linha = (f'<svg viewBox="-4 -4 108 108" aria-hidden="true"><path{contorno} d="{CONTORNO_BR}" '
-             'fill="none" stroke-linejoin="round"/></svg>')
-    pontos = "".join(
-        f'<span class="bau-ponto" style="left:{x}%;top:{y}%;--d:{d}"></span>'
-        for d, (x, y) in enumerate(CAPITAIS)
-    ) if capitais else ""
-    return f'<div class="bau-mapa" style="--tam:{tam}px">{cheio}{linha}{pontos}</div>'
-
-
-def loader_html() -> str:
-    mapa = _mapa_loader(240, "bau-ld", ' class="bau-contorno" pathLength="1" stroke="#071D41" '
-                        'stroke-width="1.6"', capitais=True)
-    msgs = "".join(f"<span>{m}</span>" for m in MENSAGENS_LOADER)
-    return html(
-        f"""<div class="bau-loader" role="status" aria-live="polite">
-        <span class="bau-sr">Carregando dados eleitorais</span>
-        <div class="bau-corpo"><div class="bau-flutua">{mapa}</div>
-        <div class="bau-sombra" aria-hidden="true"></div></div>
-        <span class="bau-nome">Brasil Além das Urnas</span>
-        <div class="bau-msgs" aria-hidden="true">{msgs}</div>
-        <div class="bau-trilho" aria-hidden="true"><i></i></div></div>"""
-    )
-
-
-def loader_compacto_html(titulo: str, texto: str, escuro: bool = False) -> str:
-    mapa = _mapa_loader(48, "bau-ld-mini", ' stroke="#C9D3E3" stroke-width="4"', capitais=False)
-    classe = "bau-compacto escuro" if escuro else "bau-compacto"
-    return html(
-        f"""<div class="{classe}" role="status" aria-live="polite">{mapa}
-        <div><strong>{escape(titulo)}</strong><span>{escape(texto)}</span></div></div>"""
-    )
 
 
 def carregando():

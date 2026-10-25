@@ -32,8 +32,15 @@ Capturas feitas com Playwright no Chrome instalado (a extensão Claude in Chrome
 ## Seção 11.4 (loader)
 - [x] `pathLength` preservado pelo `st.markdown` do Streamlit 1.58 (conferido no DOM); `role="status"`
 - [x] Com movimento reduzido fica parado (`animation-name: none`); sem ele, `bau-tracar` roda
-- [x] Some quando os dados chegam (teste `test_loader_some_depois_de_carregar` nas 4 telas)
-- [ ] Aparecer com cache frio e o compacto ao trocar para "Municípios": é transitório, conferir a olho reiniciando o app
+- [x] Camada inicial some imediatamente quando o rodapé chega (Chrome/Playwright, servidor frio e aquecido); AppTest verifica presença só na primeira execução, sem provar visibilidade no navegador
+- [x] Servidor frio: camada visível de ~1,8 a ~2,9 s, após a montagem do HTML/CSS; não cobre a inicialização do frontend do Streamlit
+- [x] Servidor aquecido: se o rodapé já está pronto quando o HTML monta, camada permanece oculta; sem fade branco
+- [x] Compacto visível ao trocar para "Municípios", oculto após desenhar o SVG do Plotly da execução atual (~220 ms visível no ensaio aquecido)
+- [x] Troca de abas sem camada inicial, inclusive a primeira; entrada pela direita (Explore → Mapa, Comparativo → Brasil) e esquerda (Mapa → Comparativo), 420 ms; topo sem deslocamento
+- [x] Chrome com movimento reduzido: contorno sem animação e navegação sem `entrar-*`; largura 390 px com alto contraste: camada preta, oculta ao concluir, sem rolagem horizontal (também conferido em 1280 px)
+- [ ] Cobrir o intervalo anterior à montagem do HTML/CSS: limitação ainda presente do Streamlit; podem aparecer widgets sem estilo personalizado
+
+Retomada verificada em 25/10/2026 com Chrome local via Playwright; 85 testes e Ruff passam. As imagens `loader_*.png` anteriores mostram o componente isolado e não foram refeitas nesta retomada.
 
 ## Seção 12.9 (100 eleitores)
 - [x] Entre a grade de cartões e "Zona por zona"; barra empilhada removida

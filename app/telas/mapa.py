@@ -3,7 +3,7 @@
 from html import escape
 
 import streamlit as st
-from lib import charts, data, fmt, ui
+from lib import charts, data, fmt, loader, ui
 
 REGIOES = ["Todas", "Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul"]
 NIVEIS = ["Estados", "Municípios"]
@@ -160,11 +160,13 @@ def render():
         if nivel == "Estados" and visao == "Mapa":
             valores = {s: float(por_sigla.loc[s, coluna]) for s in por_sigla.index}
             n = st.session_state.setdefault("mapa_cliques", 0)
-            fig = charts.mapa_ufs(valores, sigla_atual, set(estados["localidade"]))
-            evento = st.plotly_chart(
-                fig, on_select="rerun", selection_mode="points", key=f"mapa_ufs_{n}",
-                config=charts.SEM_BARRA,
-            )
+            with st.container(key="mapa_grafico"):
+                ui.mostrar(loader.loader_grafico("Carregando o mapa", "Desenhando os estados…"))
+                fig = charts.mapa_ufs(valores, sigla_atual, set(estados["localidade"]))
+                evento = st.plotly_chart(
+                    fig, on_select="rerun", selection_mode="points", key=f"mapa_ufs_{n}",
+                    config=charts.SEM_BARRA,
+                )
             pontos = evento.selection.points if evento and evento.selection else []
             if pontos:
                 clicado = pontos[0].get("customdata") or pontos[0].get("location")
@@ -185,20 +187,16 @@ def render():
                 st.session_state["mapa_lista_ultima"] = escolhida["localidade"]
                 st.session_state["mapa_uf"] = escolhida["localidade"]
         else:
-            espera = st.empty()
-            espera.markdown(ui.loader_compacto_html(
-                f"Carregando {sigla_atual}", "Desenhando os municípios do estado…"
-            ), unsafe_allow_html=True)
             df = data.municipios_da_uf(sigla_atual, ano, turno)
-            fig, limites = (
-                charts.coropletico(sigla_atual, df, coluna)
-                if visao == "Mapa" and not df.empty else (None, None)
-            )
-            espera.empty()
             if df.empty:
                 ui.nota("Sem municípios apurados para esta UF neste turno.")
             elif visao == "Mapa":
-                st.plotly_chart(fig, config=charts.SEM_BARRA)
+                with st.container(key="mapa_grafico"):
+                    ui.mostrar(loader.loader_grafico(
+                        f"Carregando {sigla_atual}", "Desenhando os municípios do estado…"
+                    ))
+                    fig, limites = charts.coropletico(sigla_atual, df, coluna)
+                    st.plotly_chart(fig, config=charts.SEM_BARRA)
                 ui.mostrar(ui.legenda_mapa(nome, charts.FAIXAS, limites))
                 ids = {f["properties"]["cd_municipio_ibge"] for f in data.malha(sigla_atual)["features"]}
                 faltam = df[~df["cd_municipio_ibge"].isin(ids)]["nm_municipio"].tolist()

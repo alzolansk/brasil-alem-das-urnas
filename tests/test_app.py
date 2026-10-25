@@ -11,8 +11,8 @@ from app.lib import charts, data, fmt, narrativa
 SAO_PAULO, LAGOA_DO_PIAUI = 3550308, 2205508
 
 
-def abrir(pagina="explore", municipio=SAO_PAULO, marts=None):
-    def roteiro(pagina, municipio, marts):
+def abrir(pagina="explore", municipio=SAO_PAULO, marts=None, estado=None):
+    def roteiro(pagina, municipio, marts, estado):
         import sys
         from pathlib import Path
 
@@ -27,10 +27,12 @@ def abrir(pagina="explore", municipio=SAO_PAULO, marts=None):
             d.MARTS = alvo
             st.cache_data.clear()
         st.session_state.setdefault("cd_ibge", municipio)
+        for chave, valor in (estado or {}).items():
+            st.session_state.setdefault(chave, valor)
         navegacao.executar(pagina)
 
     return AppTest.from_function(
-        roteiro, kwargs={"pagina": pagina, "municipio": municipio, "marts": marts},
+        roteiro, kwargs={"pagina": pagina, "municipio": municipio, "marts": marts, "estado": estado},
         default_timeout=60,
     ).run()
 
@@ -361,15 +363,45 @@ def test_selo_pendente_muda_depois_do_dia_da_eleicao(monkeypatch):
 
 
 def test_loader_igual_a_referencia_e_acessivel():
-    from app.lib import ui
+    from app.lib import loader
 
-    cheio = ui.loader_html()
+    cheio = loader.loader_html()
     assert 'role="status"' in cheio and "Carregando dados eleitorais" in cheio
     assert cheio.count('class="bau-ponto"') == 8
-    assert all(m in cheio for m in ui.MENSAGENS_LOADER)
-    mini = ui.loader_compacto_html("Carregando Campinas (SP)", "Buscando…")
+    assert all(m in cheio for m in loader.MENSAGENS_LOADER)
+    mini = loader.loader_compacto_html("Carregando Campinas (SP)", "Buscando…")
     assert "bau-compacto" in mini and "Carregando Campinas (SP)" in mini
-    assert 'id="bau-ld"' in cheio and 'id="bau-ld-mini"' in mini  # sem id repetido na página
+    ids = ['id="bau-ld"', 'id="bau-ld-mini"', 'id="bau-ld-sobre"', 'id="bau-ld-graf"']
+    trechos = [cheio, mini, loader.sobreposicao_html(), loader.loader_grafico("a", "b")]
+    assert all(i in t for i, t in zip(ids, trechos, strict=True))  # sem id repetido na página
+
+
+def test_loader_nao_importa_pandas():
+    """O Home.py mostra o loader antes de importar o resto do app: o módulo tem de ser leve."""
+    import subprocess
+    import sys
+
+    codigo = "import sys; sys.path.insert(0, 'app'); from lib import loader; print('pandas' in sys.modules)"
+    saida = subprocess.run([sys.executable, "-c", codigo], capture_output=True, text=True, check=True)
+    assert saida.stdout.strip() == "False"
+
+
+def test_home_mostra_loader_so_no_primeiro_acesso():
+    at = AppTest.from_file(str(Path("app/Home.py").resolve()), default_timeout=60).run()
+    assert not at.exception
+    valores = [m.value for m in at.markdown]
+    assert valores[0].startswith("<style>") and ".bau-sobre" in valores[0]  # loader.css
+    assert "bau-sobre" in valores[1] and "bau-loader" in valores[1]  # 1º bloco visível
+    assert any("st-key-rodape" in v for v in valores if v.startswith("<style>"))  # some pelo CSS
+    at.run()
+    assert not any("bau-sobre" in m.value for m in at.markdown if not m.value.startswith("<style>"))
+
+
+def test_loader_do_primeiro_acesso_respeita_alto_contraste():
+    from app.lib import loader
+
+    assert 'class="bau-sobre contraste"' in loader.sobreposicao_html(True)
+    assert 'class="bau-sobre"' in loader.sobreposicao_html(False)
 
 
 @pytest.mark.parametrize("pagina", ["explore", "comparativo", "brasil", "mapa"])
@@ -377,4 +409,45 @@ def test_loader_some_depois_de_carregar(pagina):
     at = abrir(pagina)
     assert not at.exception
     html = [m.value for m in at.markdown if not m.value.startswith("<style>")]
-    assert not any("bau-loader" in v or "bau-compacto" in v for v in html)
+    assert not any("bau-loader" in v for v in html)
+    # no Mapa só fica o loader do gráfico, que o CSS esconde quando o Plotly termina de desenhar
+    assert all("bau-grafico" in v for v in html if "bau-compacto" in v)
+    assert any("bau-grafico" in v for v in html) == (pagina == "mapa")
+
+
+def test_mapa_municipios_tem_loader_sobre_o_grafico():
+    at = abrir("mapa")
+    at.radio(key="mapa_nivel").set_value("Municípios").run()
+    assert not at.exception
+    assert any("bau-grafico" in m.value and "Desenhando os municípios" in m.value for m in at.markdown)
+
+
+@pytest.mark.parametrize(("anterior", "atual", "esperado"), [
+    ("explore", "mapa", 1), ("brasil", "comparativo", -1), ("mapa", "mapa", 0), (None, "explore", 0),
+    ("brasil", "metodologia", 1), ("contato", "explore", -1),
+])
+def test_direcao_da_transicao_segue_a_ordem_das_abas(anterior, atual, esperado):
+    from app.lib import ui
+
+    assert ui.direcao(anterior, atual) == esperado
+
+
+def _css(at) -> str:
+    return " ".join(m.value for m in at.markdown if m.value.startswith("<style>"))
+
+
+@pytest.mark.parametrize(("anterior", "pagina", "animacao"), [
+    ("mapa", "explore", "entrar-esquerda"), ("explore", "brasil", "entrar-direita"),
+])
+def test_troca_de_pagina_desliza_do_lado_certo(anterior, pagina, animacao):
+    at = abrir(pagina, estado={"_pagina": anterior})
+    assert not at.exception
+    assert f"animation: {animacao}" in _css(at)
+    at.run()  # outra execução na mesma página: sem transição
+    assert "animation: entrar-" not in _css(at)
+
+
+def test_sem_transicao_no_primeiro_acesso_e_no_alto_contraste():
+    assert "animation: entrar-" not in _css(abrir("explore"))
+    at = abrir("brasil", estado={"_pagina": "explore", "alto_contraste": True})
+    assert "animation: entrar-" not in _css(at)
