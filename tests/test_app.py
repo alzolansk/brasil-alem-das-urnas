@@ -1,5 +1,7 @@
 """Fumaça do app com AppTest (sem GCP): cada tela abre, sem exceção, nos estados principais."""
 
+from pathlib import Path
+
 import pandas as pd
 import pytest
 from streamlit.testing.v1 import AppTest
@@ -217,15 +219,71 @@ def test_entre_turnos(comp, bn, esperado):
 
 
 @pytest.mark.parametrize(
-    ("delta", "fim"),
-    [(1.7, "ficaram 1,7 p.p. acima da média nacional."),
-     (-1.7, "ficaram 1,7 p.p. abaixo da média nacional."),
-     (0.2, "ficaram praticamente iguais à média nacional.")],
+    ("pontos", "esperado"),
+    [([73, 2, 4, 21], "73 votaram em um candidato, 2 votaram em branco, 4 votaram nulo e 21 não compareceram."),
+     ([78, 1, 1, 20], "78 votaram em um candidato, 1 votou em branco, 1 votou nulo e 20 não compareceram."),
+     ([80, 0, 3, 17], "80 votaram em um candidato, nenhum votou em branco, 3 votaram nulo e 17 não compareceram.")],
 )
-def test_votos(delta, fim):
-    texto = narrativa.votos(685_549, delta)
-    assert texto.startswith("Dos 685.549 votos registrados, a grande maioria foi para um candidato.")
-    assert texto.endswith(fim)
+def test_resumo_100_plural_singular_e_zero(pontos, esperado):
+    texto = narrativa.resumo_100("Campinas", 2026, 1, pontos)
+    assert texto == f"Exibindo 2026, 1º turno. De cada 100 eleitores aptos de Campinas, {esperado}"
+    assert narrativa.resumo_100("X", 2022, 1, None).endswith("Não há dados desta eleição para X.")
+
+
+def test_pontos_100_exemplo_e_empate():
+    assert data.pontos_100([631391, 17824, 36334, 177863], 863412) == [73, 2, 4, 21]
+    assert data.pontos_100([1, 1, 1], 3) == [34, 33, 33]  # restos iguais: menor índice ganha
+    assert data.pontos_100([0, 0, 0, 0], 0) == [0, 0, 0, 0]
+
+
+def test_pontos_100_soma_100_em_toda_a_mart():
+    b = data.carregar("mart_municipio_benchmark")
+    b = b[b["aptos"] > 0]
+    somas = {sum(data.pontos_100(data.contagens_100(linha), int(linha["aptos"])))
+             for _, linha in b.iterrows()}
+    assert somas == {100}
+
+
+def test_bloco_100_percentuais_visiveis_sobre_aptos():
+    import re
+
+    from app.lib import ui
+
+    ind = data.indicadores(3509502, 2026, 1)
+    pontos = data.pontos_100(data.contagens_100(ind), int(ind["aptos"]))
+    bloco = ui.bloco_100(ind, pontos, 2026, 1, "resumo")
+    visivel = bloco.split("<details")[0]
+    soma = sum(float(v.replace(",", ".")) for v in re.findall(r"<b>([\d,]+)%</b>", visivel))
+    assert 99.8 <= soma <= 100.2
+    assert bloco.count('class="e100-pt ') == 100 and 'aria-hidden="true"' in bloco
+
+
+@sem_2t_2026
+def test_explore_segundo_turno_2026_sem_bloco_100():
+    at = abrir("explore")
+    at.radio(key="explore_eleicao").set_value((2026, 2)).run()
+    assert not at.exception
+    assert not any('class="e100' in m.value for m in at.markdown)
+
+
+def test_bloco_100_indisponivel_para_municipio_novo_em_2022():
+    at = abrir("explore", municipio=5101837)  # Boa Esperança do Norte (MT), só existe em 2026
+    at.radio(key="e100_ano").set_value(2022).run()
+    assert not at.exception, [e.value for e in at.exception]
+    html = " ".join(m.value for m in at.markdown)
+    assert "Sem dados para 2022" in html and "Dados de 2022, 1º turno, indisponíveis" in html
+    assert "Ver distribuição entre quem votou" not in html
+
+
+def test_bloco_100_volta_ao_ano_da_consulta():
+    at = abrir("explore")
+    at.radio(key="explore_eleicao").set_value((2022, 1)).run()
+    assert at.radio(key="e100_ano").value == 2022
+    at.radio(key="e100_ano").set_value(2026).run()
+    assert at.radio(key="e100_ano").value == 2026
+    assert any("Exibindo <b>2026 · 1º turno</b>" in m.value for m in at.markdown)
+    at.radio(key="explore_eleicao").set_value((2022, 2)).run()
+    assert at.radio(key="e100_ano").value == 2022
 
 
 @pytest.mark.parametrize("regiao", [None, "Norte", "Sul"])
@@ -259,7 +317,8 @@ def test_brasil_segundo_turno_2026_aguardando():
 
 
 def test_app_sem_caminho_abre_o_explore():
-    at = AppTest.from_file("app/Home.py", default_timeout=60).run()
+    home = Path(__file__).resolve().parents[1] / "app" / "Home.py"  # relativo ao teste no Streamlit novo
+    at = AppTest.from_file(str(home), default_timeout=60).run()
     assert not at.exception, [e.value for e in at.exception]
     assert any("<h1>Explore seu município</h1>" in m.value for m in at.markdown)
 
@@ -299,3 +358,23 @@ def test_selo_pendente_muda_depois_do_dia_da_eleicao(monkeypatch):
     assert ui.segundo_turno_pendente() == "2º turno em 25/10"
     Hoje.dia = date(2026, 10, 26)
     assert ui.segundo_turno_pendente() == "2º turno em totalização"
+
+
+def test_loader_igual_a_referencia_e_acessivel():
+    from app.lib import ui
+
+    cheio = ui.loader_html()
+    assert 'role="status"' in cheio and "Carregando dados eleitorais" in cheio
+    assert cheio.count('class="bau-ponto"') == 8
+    assert all(m in cheio for m in ui.MENSAGENS_LOADER)
+    mini = ui.loader_compacto_html("Carregando Campinas (SP)", "Buscando…")
+    assert "bau-compacto" in mini and "Carregando Campinas (SP)" in mini
+    assert 'id="bau-ld"' in cheio and 'id="bau-ld-mini"' in mini  # sem id repetido na página
+
+
+@pytest.mark.parametrize("pagina", ["explore", "comparativo", "brasil", "mapa"])
+def test_loader_some_depois_de_carregar(pagina):
+    at = abrir(pagina)
+    assert not at.exception
+    html = [m.value for m in at.markdown if not m.value.startswith("<style>")]
+    assert not any("bau-loader" in v or "bau-compacto" in v for v in html)

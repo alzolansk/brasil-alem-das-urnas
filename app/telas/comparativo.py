@@ -68,7 +68,7 @@ def render():
     cd = int(mun["cd_municipio_ibge"])
     anima = ui.anima("comparativo")
 
-    carregando = ui.esqueleto(3)
+    carregando = ui.carregando()
     try:
         anos = data.comparativo(cd, "anos", 2022, 1)
         t2022 = data.comparativo(cd, "turnos", 2022, 1)

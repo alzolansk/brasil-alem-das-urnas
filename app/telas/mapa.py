@@ -111,13 +111,17 @@ def render():
 
     nome = data.INDICADORES[indicador][0]
     coluna = f"{indicador}_pct"
+    with centro:
+        carregando = ui.carregando()
     try:
         ufs = data.uf_brasil(ano, turno)
     except Exception as exc:  # noqa: BLE001
+        carregando.empty()
         with centro:
             ui.erro_leitura(exc)
         ui.rodape()
         st.stop()
+    carregando.empty()
 
     if ufs.empty:
         with centro:
@@ -181,11 +185,19 @@ def render():
                 st.session_state["mapa_lista_ultima"] = escolhida["localidade"]
                 st.session_state["mapa_uf"] = escolhida["localidade"]
         else:
+            espera = st.empty()
+            espera.markdown(ui.loader_compacto_html(
+                f"Carregando {sigla_atual}", "Desenhando os municípios do estado…"
+            ), unsafe_allow_html=True)
             df = data.municipios_da_uf(sigla_atual, ano, turno)
+            fig, limites = (
+                charts.coropletico(sigla_atual, df, coluna)
+                if visao == "Mapa" and not df.empty else (None, None)
+            )
+            espera.empty()
             if df.empty:
                 ui.nota("Sem municípios apurados para esta UF neste turno.")
             elif visao == "Mapa":
-                fig, limites = charts.coropletico(sigla_atual, df, coluna)
                 st.plotly_chart(fig, config=charts.SEM_BARRA)
                 ui.mostrar(ui.legenda_mapa(nome, charts.FAIXAS, limites))
                 ids = {f["properties"]["cd_municipio_ibge"] for f in data.malha(sigla_atual)["features"]}

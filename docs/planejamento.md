@@ -30,7 +30,7 @@ Arquivo criado em 25/10/2026: o repositório não tinha um documento de planejam
 ## Fase 3: app Streamlit (25/10/2026)
 | # | Status |
 |---|---|
-| 3.0 | 1ª versão reprovada pelo usuário (distante do protótipo). Refeita segundo `docs/design/especificacao-fidelidade-prototipo.md` e conferida contra os 4 artboards do canvas de Design. **Pendente (humano):** prints em `docs/design/aceite/` (1280px e 390px, Campinas e um município de zona única, alto contraste) e aprovação pelo checklist da seção 9.2 da especificação. |
+| 3.0 | 1ª versão reprovada pelo usuário (distante do protótipo). Refeita segundo `docs/design/especificacao-fidelidade-prototipo.md` e conferida contra os 4 artboards do canvas de Design. Prints feitos em 25/10/2026 em `docs/design/aceite/` (ver o README da pasta, com os checklists 9.2, 11.4 e 12.9). **Pendente (humano):** aprovação final. |
 | 3.1 | Feito: faixa, cabeçalho com logo e busca, abas (menu "☰" abaixo de 768px), breadcrumb, rodapé, alto contraste. |
 | 3.2–3.5 | Feitas: Explore, Comparativo, Mapa (grade de UFs clicável, municípios por UF, lista ordenada), Brasil em perspectiva. Estados de carregamento (esqueleto), sem dado ("Aguardando apuração"), município não encontrado (com sugestões) e erro de leitura. Município mantido entre telas e na URL (`?m=`). |
 | 3.6 | Feito: `app/lib/narrativa.py`, modelos fixos, testados. Limite de 0,5 p.p. |
@@ -84,4 +84,11 @@ Status em 25/10/2026: preparada, aguardando o TSE e o deploy.
 - A extensão Claude in Chrome não respondeu ("No group with id"); as capturas foram feitas com Playwright usando o Chrome instalado.
 - O CI não tem os zips do TSE (fora do git), então os 7 testes de ingestão só rodam localmente.
 - Saída dos scripts no terminal Git Bash do Windows mostra acentos trocados (codificação do console); o PowerShell e o CI não têm o problema.
-- Havia alterações não commitadas da Fase 3 (mapa de UFs pela malha do IBGE, `data/geo/malha_UF.geojson`): testes passam e foram commitadas à parte. `docs/design/loader/` não fazia parte da Fase 4 e ficou fora do commit.
+- Havia alterações não commitadas da Fase 3 (mapa de UFs pela malha do IBGE, `data/geo/malha_UF.geojson`): testes passam e foram commitadas à parte.
+
+## Loader e "Sua cidade em 100 eleitores" (25/10/2026)
+Seções 11 e 12 da especificação.
+- **Loader:** CSS de `docs/design/loader/` no fim de `style.css`; `ui.loader_html()`, `ui.loader_compacto_html()` e `ui.carregando()` (tela cheia) nas 4 telas, compacto ao desenhar os municípios no Mapa. Alto contraste e movimento reduzido tratados. Ajustes: `.bau-compacto.escuro` colidia com o `.escuro` da Leitura rápida, e a 1ª frase quebrava em duas linhas em cima da barra.
+- **100 eleitores:** `data.pontos_100` (maiores restos), `data.contagens_100`, `narrativa.resumo_100`, `ui.bloco_100`; bloco em `@st.fragment` com seletor de ano próprio (`e100_ano`), estado indisponível, detalhe com a distribuição entre quem votou. Saíram `ui.bloco_votos`, `ui.barra_empilhada` e `narrativa.votos` (e o teste dela).
+- Testes: 72 passam (loader, pontos em lote nas 16.711 linhas, exemplo, empate, frases, indisponível, volta do ano, soma dos percentuais visíveis); ruff limpo.
+- Manaus 2022 (84 eleitores de seções não instaladas) registrada em `docs/validacao.md`.

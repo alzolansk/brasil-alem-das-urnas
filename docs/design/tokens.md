@@ -22,9 +22,11 @@ Referência visual: canvas de Design "Brasil Além das Urnas" (4 artboards), que
 | `--muted` / `--caption` | `#3A3F47` / `#4A4F57` | Texto secundário / legendas |
 | `--border` / `--divider` | `#DCDFE4` / `#E6E8EC` | Bordas de cartão / divisórias internas |
 | `--input-border` | `#888F99` | Borda de campos |
-| `--bg-soft` | `#F5F7FA` | Barra utilitária, filtros, bloco de votos |
+| `--bg-soft` | `#F5F7FA` | Barra utilitária, filtros |
 | `--track` | `#F1F3F6` | Fundo das barras |
 | `--on-dark-muted` | `#C9D3E3` | Texto secundário no rodapé |
+| (sem token) | `#8A929C` | Pontos de "Não compareceram" no bloco de 100 eleitores (3:1 sobre branco) |
+| (sem token) | `#9A7700` | Anel interno de 1,5px dos pontos amarelos (brancos) |
 
 Faixa no topo: 4px, verde · amarelo · azul na proporção 3 : 1 : 3.
 

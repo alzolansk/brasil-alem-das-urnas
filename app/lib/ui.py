@@ -335,34 +335,70 @@ def grade_herois(heroi1: str, heroi2: str, leitura: str) -> str:
     return f'<div class="grade-herois">{heroi1}{heroi2}{leitura}</div>'
 
 
-def barra_empilhada(partes) -> str:
-    """partes: [(nome, pct, cor_css)]. Sem texto dentro dos segmentos."""
-    segmentos = "".join(
-        f'<span style="width:{max(v, 0.3)}%;background:{cor};--j:{j}"></span>'
-        for j, (_, v, cor) in enumerate(partes)
+# Sua cidade em 100 eleitores (seção 12): classe CSS e descrição de cada grupo
+GRUPOS_100 = [("val", "Votaram em um candidato"), ("bra", "Votaram em branco"),
+              ("nul", "Votaram nulo"), ("abs", "Não compareceram")]
+TEXTO_2T_PENDENTE = ("O 2º turno de 2026 ainda está em apuração. Os pontos aparecem aqui assim que a "
+                     "totalização oficial for publicada. Enquanto isso, veja 2022.")
+
+
+def cabecalho_100() -> str:
+    return ('<div class="e100-cab"><span class="e100-rotulo">Participação</span>'
+            "<h3>Sua cidade em 100 eleitores</h3></div>")
+
+
+def exibindo_100(ano: int, turno: int) -> str:
+    return f'<p class="e100-exibindo">Exibindo <b>{ano} · {turno}º turno</b></p>'
+
+
+def _grade_100(pontos) -> str:
+    if pontos is None:
+        return '<i class="e100-pt"></i>' * 100
+    classes = [g for (g, _), n in zip(GRUPOS_100, pontos, strict=True) for _ in range(n)]
+    return "".join(f'<i class="e100-pt e100-{g}" style="--i:{i}"></i>' for i, g in enumerate(classes))
+
+
+def bloco_100(ind, pontos, ano: int, turno: int, resumo: str) -> str:
+    """Grade de 100 pontos (aria-hidden) e corpo com texto, legenda, nota e detalhe.
+    `ind` None = estado indisponível (sem estimar nada)."""
+    sr = f'<p class="e100-sr" aria-live="polite">{escape(resumo)}</p>'
+    if ind is None:
+        texto = (TEXTO_2T_PENDENTE if (ano, turno) == (2026, 2)
+                 else "Não há dados desta eleição para o município.")
+        return html(
+            f"""<div class="e100">{sr}<div class="e100-grade sem" aria-hidden="true">{_grade_100(None)}
+            <span class="e100-sem">Sem dados para {ano}</span></div>
+            <div class="e100-corpo"><div class="e100-indisp" role="status">
+            <strong>Dados de {ano}, {turno}º turno, indisponíveis</strong><span>{texto}</span></div>
+            </div></div>"""
+        )
+    aptos, comparecimento = int(ind["aptos"]), int(ind["comparecimento"])
+    contagens = data.contagens_100(ind)
+    legenda = "".join(
+        f"""<li><i class="e100-bola e100-{g}"></i><span>{nome}</span>
+        <span class="n">{n} de 100</span><b>{fmt.pct(100 * c / aptos)}</b></li>"""
+        for (g, nome), n, c in zip(GRUPOS_100, pontos, contagens, strict=True)
     )
-    descricao = ", ".join(f"{n} {fmt.pct(v)}" for n, v, _ in partes) + " dos votos"
-    return f'<div class="barra" role="img" aria-label="{escape(descricao)}">{segmentos}</div>'
-
-
-def bloco_votos(
-    validos, brancos, nulos, qtd_validos, qtd_brancos, qtd_nulos, texto, anima: str = "", i: int = 0
-) -> str:
-    partes = [
-        ("Válidos", validos, "var(--green)", qtd_validos),
-        ("Brancos", brancos, "var(--yellow)", qtd_brancos),
-        ("Nulos", nulos, "var(--orange)", qtd_nulos),
-    ]
-    numeros = "".join(
-        f"""<div><span class="nome"><i class="quadrado" style="background:{cor}"></i>{n}</span>
-        <span class="pct">{fmt.pct(v)}</span><span class="qtd">{fmt.inteiro(q)} votos</span></div>"""
-        for n, v, cor, q in partes
+    votos = [("Em um candidato (válidos)", contagens[0]), ("Em branco", contagens[1]),
+             ("Nulo", contagens[2])]
+    linhas = "".join(
+        f'<tr><th scope="row">{v}</th><td>{fmt.inteiro(c)}</td>'
+        f"<td>{fmt.pct(100 * c / comparecimento if comparecimento else None)}</td></tr>"
+        for v, c in votos
     )
     return html(
-        f"""<section class="votos{anima}" style="--i:{i}"><div class="texto">
-        <h3>E quem votou, votou em quê?</h3><p>{escape(texto)}</p></div>
-        <div class="grafico">{barra_empilhada([(n, v, c) for n, v, c, _ in partes])}
-        <div class="numeros">{numeros}</div></div></section>"""
+        f"""<div class="e100">{sr}<div class="e100-grade" aria-hidden="true">{_grade_100(pontos)}</div>
+        <div class="e100-corpo"><p class="e100-intro">Se o eleitorado da sua cidade fosse um grupo
+        de 100 pessoas, a participação seria assim.</p><ul class="e100-legenda">{legenda}</ul>
+        <p class="e100-nota">Percentuais sobre os {fmt.inteiro(aptos)} eleitores aptos. Pontos
+        arredondados para somar 100; percentuais exibidos com uma casa decimal.</p>
+        <details class="e100-det"><summary>Ver distribuição entre quem votou</summary>
+        <p>Base: {fmt.inteiro(comparecimento)} eleitores que compareceram em {ano}, {turno}º turno.
+        A abstenção fica de fora desta conta.</p>
+        <table><thead><tr><th scope="col">Voto</th><th scope="col">Eleitores</th>
+        <th scope="col">% de quem votou</th></tr></thead><tbody>{linhas}</tbody>
+        <tfoot><tr><th scope="row">Total de quem votou</th><td>{fmt.inteiro(comparecimento)}</td>
+        <td>100,0%</td></tr></tfoot></table></details></div></div>"""
     )
 
 
@@ -494,10 +530,66 @@ def nota(texto: str) -> None:
     mostrar(f'<div class="nota">{escape(texto)}</div>')
 
 
-def esqueleto(linhas: int = 2):
-    """Placeholder de carregamento; chamar .empty() quando os dados chegarem."""
+# Loader (seção 11 da especificação; referência em docs/design/loader/). Mesmo contorno da logo.
+CONTORNO_BR = (
+    "M33.9 0.3 L45.9 8.7 L57.1 2.3 L61.2 13.6 L65 16.7 L75.8 20 L90.6 23.1 L99 28.5 L99.7 34.1 "
+    "L90.6 46.9 L89.3 51.5 L88.8 59 L86 65.6 L81.6 72.6 L70.7 75.1 L65 84.1 L55.9 95.9 L52.6 100 "
+    "L47.2 93.1 L41.8 91 L51.5 83.3 L49.5 79.2 L46.2 70.8 L40.6 65.1 L39.8 55.4 L35.5 48.2 "
+    "L22.2 41.5 L11.2 41.8 L1.3 37.7 L2.6 32.3 L10.2 24.4 L11.7 16.2 L10.7 9.2 L17.9 10.5 L25.5 3.3 Z"
+)
+CAPITAIS = [(36.8, 23.6), (63.9, 19.6), (86.1, 25.9), (92.6, 35.2), (46.0, 53.3), (65.4, 53.8),
+            (68.4, 72.0), (57.6, 87.5)]
+MENSAGENS_LOADER = ["Contando eleitores de todos os municípios…", "Comparando 2022 com 2026…",
+                    "Pintando o mapa do Brasil…"]
+
+
+def _mapa_loader(tam: int, gid: str, contorno: str, capitais: bool) -> str:
+    """Brasil em verde, amarelo e azul que se pinta na diagonal, com o contorno por cima."""
+    grad = (f'<defs><linearGradient id="{gid}" x1="0" y1="0" x2="1" y2="1">'
+            '<stop offset="0" stop-color="#12753E"/><stop offset=".47" stop-color="#12753E"/>'
+            '<stop offset=".47" stop-color="#F5C400"/><stop offset=".59" stop-color="#F5C400"/>'
+            '<stop offset=".59" stop-color="#0B4EA2"/><stop offset="1" stop-color="#0B4EA2"/>'
+            "</linearGradient></defs>")
+    cheio = (f'<div class="bau-cheio"><svg viewBox="-4 -4 108 108" aria-hidden="true">{grad}'
+             f'<path d="{CONTORNO_BR}" fill="url(#{gid})" stroke="url(#{gid})" stroke-width="3" '
+             'stroke-linejoin="round"/></svg></div>')
+    linha = (f'<svg viewBox="-4 -4 108 108" aria-hidden="true"><path{contorno} d="{CONTORNO_BR}" '
+             'fill="none" stroke-linejoin="round"/></svg>')
+    pontos = "".join(
+        f'<span class="bau-ponto" style="left:{x}%;top:{y}%;--d:{d}"></span>'
+        for d, (x, y) in enumerate(CAPITAIS)
+    ) if capitais else ""
+    return f'<div class="bau-mapa" style="--tam:{tam}px">{cheio}{linha}{pontos}</div>'
+
+
+def loader_html() -> str:
+    mapa = _mapa_loader(240, "bau-ld", ' class="bau-contorno" pathLength="1" stroke="#071D41" '
+                        'stroke-width="1.6"', capitais=True)
+    msgs = "".join(f"<span>{m}</span>" for m in MENSAGENS_LOADER)
+    return html(
+        f"""<div class="bau-loader" role="status" aria-live="polite">
+        <span class="bau-sr">Carregando dados eleitorais</span>
+        <div class="bau-corpo"><div class="bau-flutua">{mapa}</div>
+        <div class="bau-sombra" aria-hidden="true"></div></div>
+        <span class="bau-nome">Brasil Além das Urnas</span>
+        <div class="bau-msgs" aria-hidden="true">{msgs}</div>
+        <div class="bau-trilho" aria-hidden="true"><i></i></div></div>"""
+    )
+
+
+def loader_compacto_html(titulo: str, texto: str, escuro: bool = False) -> str:
+    mapa = _mapa_loader(48, "bau-ld-mini", ' stroke="#C9D3E3" stroke-width="4"', capitais=False)
+    classe = "bau-compacto escuro" if escuro else "bau-compacto"
+    return html(
+        f"""<div class="{classe}" role="status" aria-live="polite">{mapa}
+        <div><strong>{escape(titulo)}</strong><span>{escape(texto)}</span></div></div>"""
+    )
+
+
+def carregando():
+    """Loader de tela cheia; chamar .empty() quando os dados chegarem."""
     espaco = st.empty()
-    espaco.markdown(html('<div class="esqueleto"></div>' * linhas), unsafe_allow_html=True)
+    espaco.markdown(loader_html(), unsafe_allow_html=True)
     return espaco
 
 

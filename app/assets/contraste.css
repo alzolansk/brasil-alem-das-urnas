@@ -8,8 +8,8 @@
 .stApp { background: #000; }
 h1, h2, h3, .titulo, .numero { color: #fff !important; }
 .marca { background: none !important; text-decoration: underline 3px var(--yellow); text-underline-offset: 4px; }
-.heroi, .escopo, .cartao, .turno, .estado-sel, .ranking, .cartao-tabela, .votos, .nota, .aguardando,
-.st-key-filtros, .st-key-mapa_filtros, .st-key-mapa_cartao, .st-key-zonas, .st-key-tendencia { background: #000; border-color: #fff; }
+.heroi, .escopo, .cartao, .turno, .estado-sel, .ranking, .cartao-tabela, .nota, .aguardando,
+.st-key-filtros, .st-key-mapa_filtros, .st-key-mapa_cartao, .st-key-zonas, .st-key-tendencia, .st-key-e100 { background: #000; border-color: #fff; }
 .escuro { background: #000; border: 2px solid #fff; }
 .st-key-rodape, .st-key-utilitaria { background: #000; border-color: #fff; }
 .st-key-rodape { border-top: 2px solid #fff; }
@@ -26,3 +26,18 @@ h1, h2, h3, .titulo, .numero { color: #fff !important; }
 [data-baseweb="select"] > div, [data-baseweb="input"], input { background-color: #111 !important; color: #fff !important; }
 .anima, .anima * { animation: none !important; }
 .ponto-aguardando { animation: none !important; }
+.bau-loader *, .bau-compacto * { animation: none !important; }
+.bau-nome, .bau-compacto strong { color: #fff !important; }
+.bau-msgs span, .bau-compacto span { color: #fff !important; }
+.bau-compacto { background: #000; border-color: #fff; }
+.bau-contorno, .bau-compacto .bau-mapa > svg path { stroke: #fff; }
+.bau-ponto { box-shadow: 0 0 0 2.5px #fff; }
+.bau-trilho { background: #333; }
+.e100-bra { box-shadow: inset 0 0 0 1.5px #fff; }
+.e100-sem, .e100-indisp { background: #000; color: #fff; border-color: #fff; }
+.e100-indisp strong, .e100-indisp span, .e100-exibindo b, .e100-legenda b { color: #fff !important; }
+.e100-pt { transition: none !important; }
+.st-key-e100_ano [role="radiogroup"] { background: #000; border-color: var(--yellow); }
+.st-key-e100_ano [role="radiogroup"] label:has(input:checked) { background: var(--yellow); }
+.st-key-e100_ano [role="radiogroup"] label:has(input:checked) p { color: #000 !important; }
+.st-key-e100_ano label p { color: var(--yellow) !important; }

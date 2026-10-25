@@ -33,7 +33,7 @@ def render():
             key="brasil_eleicao",
         )
 
-    carregando = ui.esqueleto(3)
+    carregando = ui.carregando()
     try:
         ind = data.indicadores(cd, ano, turno)
         uf = data.uf(sigla, ano, turno)

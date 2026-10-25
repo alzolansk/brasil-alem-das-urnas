@@ -152,18 +152,26 @@ def entre_turnos(ano, comp_delta, bn_delta) -> str:
     )
 
 
-def votos(comparecimento, bn_delta_br) -> str:
-    """Texto do bloco 'E quem votou, votou em quê?'."""
-    classe = classificar(bn_delta_br)
-    if classe == "igual":
-        comparacao = "praticamente iguais à média nacional"
-    else:
-        posicao = "acima" if classe == "alta" else "abaixo"
-        comparacao = f"{_modulo(bn_delta_br)} {posicao} da média nacional"
-    return (
-        f"Dos {fmt.inteiro(comparecimento)} votos registrados, a grande maioria foi para um "
-        f"candidato. Os brancos e nulos ficaram {comparacao}."
-    )
+# grupo -> (plural, singular, zero), na ordem de data.contagens_100
+GRUPOS_100 = [
+    ("votaram em um candidato", "votou em um candidato", "nenhum votou em um candidato"),
+    ("votaram em branco", "votou em branco", "nenhum votou em branco"),
+    ("votaram nulo", "votou nulo", "nenhum votou nulo"),
+    ("não compareceram", "não compareceu", "todos compareceram"),
+]
+
+
+def resumo_100(nome, ano, turno, pontos) -> str:
+    """Frase lida pelo leitor de tela no lugar da grade de 100 pontos."""
+    inicio = f"Exibindo {ano}, {turno}º turno."
+    if pontos is None:
+        return f"{inicio} Não há dados desta eleição para {nome}."
+    partes = [
+        zero if n == 0 else f"1 {singular}" if n == 1 else f"{n} {plural}"
+        for n, (plural, singular, zero) in zip(pontos, GRUPOS_100, strict=True)
+    ]
+    return (f"{inicio} De cada 100 eleitores aptos de {nome}, "
+            f"{', '.join(partes[:-1])} e {partes[-1]}.")
 
 
 def em_quatro_anos(delta_pp) -> str:

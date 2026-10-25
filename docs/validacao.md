@@ -20,3 +20,13 @@ Preenchimento manual (tarefas 2.4 e 4.3). Compare o valor calculado pelo pipelin
 - Os números anunciados do resultado (123.682.372 em 2022) coincidem com o pipeline; os do painel, com o perfil. Ambos são oficiais.
 - **Decisão:** manter `detalhe_votacao_munzona`. Só ele traz válidos, brancos e nulos, que somam exatamente o comparecimento. A diferença para o painel é inferior a 0,03% no Brasil e vira nota de rodapé do app ("os números podem diferir ligeiramente do painel de comparecimento do TSE, que usa outra base"). Para zonas do exterior e do DF a diferença relativa é maior (exterior 2022 1º turno: ~10%); o app deve mostrar essa nota junto do exterior.
 - Os totais do painel serão reconferidos se o app passar a exibir comparecimento por perfil.
+
+## Abstenção × aptos (bloco "Sua cidade em 100 eleitores", 25/10/2026)
+Em `mart_municipio_benchmark`, `comparecimento = válidos + brancos + nulos` nas 16.711 linhas, mas `abstenções + comparecimento ≠ aptos` em 2 linhas:
+
+| Eleição | Município | Aptos | Comparecimento | Abstenções | Seções não instaladas |
+|---|---|---|---|---|---|
+| 2022, 1º turno | Manaus (AM) | 1.418.757 | 1.202.632 | 216.041 | 84 |
+| 2022, 2º turno | Manaus (AM) | 1.418.871 | 1.190.953 | 227.834 | 84 |
+
+A diferença é exatamente a dos eleitores de seções não instaladas, que o TSE não conta como abstenção (`aptos = comparecimento + abstenções + seções não instaladas`, como na metodologia). No bloco de 100 eleitores, "Não compareceram" usa `aptos − comparecimento` para os quatro grupos somarem 100%, e por isso inclui esses 84 eleitores. Os cartões de abstenção continuam com o número do TSE.

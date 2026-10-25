@@ -64,7 +64,7 @@ O app foi rodado localmente com os Parquets reais, Campinas (SP), em 1280px e 39
 | 12 | Explore: frase de abertura | Frase descritiva ("Em Campinas (SP), no 1º turno…") | Manchete editorial em H2 de 34px, com trecho grifado em amarelo (seção 6) | Alta |
 | 13 | Explore: cartões principais | Número azul de 52px; comparações em chips | Número azul-marinho de 64px em Raleway 800; comparações numa grade de 3 colunas com linha divisória acima | Alta |
 | 14 | Explore: Leitura rápida | Faixa larga abaixo dos cartões | Cartão escuro **ao lado** dos dois cartões principais, com o link "Ver … em perspectiva →" | Alta |
-| 15 | Explore: votos | Título solto e barra sem contexto; brancos em **cinza** | Bloco com fundo claro: título "E quem votou, votou em quê?", texto, barra de 28px e três números com quantidades. Brancos em **amarelo** | Média |
+| 15 | Explore: votos | Título "Como foram os votos" e barra empilhada com percentuais **sobre quem compareceu**; brancos em **cinza** | Bloco **"Sua cidade em 100 eleitores"**: grade de 100 pontos com percentuais **sobre os eleitores aptos**, seletor 2022 / 2026 e detalhe expansível com a distribuição entre quem votou (seção 12) | Alta |
 | 16 | Explore: zonas | `st.dataframe` com 7 colunas, sem cartão | Tabela HTML dentro de um cartão com título, subtítulo e "Baixar CSV" no cabeçalho | Média |
 | 17 | Comparativo: abertura | "Em quatro anos, o comparecimento caiu…", em texto de 17px | Rótulo "EM QUATRO ANOS" com manchete em H2 de 32px e grifo | Alta |
 | 18 | Comparativo: tabela | Tabela sem cartão; legenda em nota de rodapé | Tabela dentro de um cartão, com a legenda Aumentou/Diminuiu no cabeçalho e a diferença colorida e em negrito | Média |
@@ -333,12 +333,8 @@ Mantenha a estrutura atual e acrescente:
 @media (max-width: 640px)  { .grade-herois { grid-template-columns: 1fr; } }
 ```
 
-### 4.6 `bloco_votos(validos, brancos, nulos, qtd_validos, qtd_brancos, qtd_nulos, comparecimento, delta_bn_br)`
-É um cartão com fundo `--bg-soft`, raio de 16px e padding de 28px, dividido em duas áreas com `flex-wrap`:
-- **Esquerda (1fr):** o H3 "E quem votou, votou em quê?" e um texto gerado por `narrativa.votos(...)` (seção 6).
-- **Direita (2fr):** a barra empilhada de 28px, com 2px entre os segmentos e raio de 6px. Válidos em `--green`, brancos em `--yellow`, nulos em `--orange`. Abaixo, uma grade de 3 colunas com, em cada uma: quadradinho de cor e nome (14px), percentual (Raleway 26px/700) e "{n} votos" (13px, `#4A4F57`).
-
-A barra **não** mostra texto dentro dos segmentos (hoje mostra "94,8%"): os números ficam embaixo. Mantenha o `aria-label`.
+### 4.6 Bloco "Sua cidade em 100 eleitores"
+**Substitui** o antigo bloco de votos ("E quem votou, votou em quê?" com barra empilhada). A especificação completa está na **seção 12**. Remova `ui.barra_empilhada` se ela não tiver outro uso.
 
 ### 4.7 `cartao_tabela(titulo, subtitulo, tabela_html)` e tabela de zonas
 Cartão com raio de 16px e `overflow: hidden`. O cabeçalho tem padding de 20px 24px, borda inferior, título à esquerda e uma área para o botão à direita.
@@ -399,7 +395,7 @@ Ordem dos blocos:
 6. `manchete("O que os números dizem", narrativa.manchete_explore(...))`
 7. `grade_herois` com o herói de comparecimento, o herói de abstenção e a Leitura rápida com link.
 8. A nota "p.p. = ponto percentual…" vira uma legenda pequena **abaixo da grade** (13px).
-9. `bloco_votos(...)`
+9. Bloco "Sua cidade em 100 eleitores" (seção 12)
 10. Cartão "Zona por zona", com o subtítulo "A participação muda dentro da própria cidade" e a tabela da seção 4.7. Município com uma zona só: mantenha a nota atual (o teste procura "única zona eleitoral").
 11. `ui.rodape()`
 
@@ -546,8 +542,8 @@ Exemplo real: "Campinas perdeu 7,8 mil eleitores e **ficou menos participativa**
 **`entre_turnos(ano, comp_delta, bn_delta) -> str`**
 "Em {ano}, o comparecimento {caiu|subiu} X p.p. do 1º para o 2º turno, e brancos e nulos {recuaram|aumentaram} Y p.p." Quando um dos dois for "igual", use "ficou praticamente igual" / "ficaram praticamente iguais".
 
-**`votos(comparecimento, bn_delta_br) -> str`**
-"Dos {comparecimento} votos registrados, a grande maioria foi para um candidato. Os brancos e nulos ficaram {X p.p. acima | X p.p. abaixo | praticamente iguais} {à média | da média} nacional." Os 2 casos não "igual" usam "da média nacional"; o caso "igual" usa "à média nacional".
+**`resumo_100(nome, ano, turno, pontos) -> str`**
+Descrição textual da grade de 100 pontos, para leitores de tela (seção 12.6). Exemplo: "Exibindo 2026, 1º turno. De cada 100 eleitores aptos de Campinas, 73 votaram em um candidato, 2 votaram em branco, 4 votaram nulo e 21 não compareceram." Use o singular quando o grupo tiver 1 ponto ("1 votou em branco") e "nenhum votou em branco" quando tiver 0.
 
 Testes para cada função, cobrindo alta, queda e igual. Siga o padrão de `test_modelos_de_frase_cobrem_alta_queda_e_igual`.
 
@@ -592,7 +588,7 @@ Todo `@keyframes` e toda `animation` ficam dentro de `@media (prefers-reduced-mo
 |---|---|---|---|---|
 | A1 | Blocos da página (manchete, heróis, Leitura rápida, votos, tabelas e cartões do mapa) | Surgir: opacidade 0 → 1 e `translateY(8px)` → 0 | 320ms; atraso `var(--i) × 70ms`, com `--i` de 0 a 5 na ordem do HTML | `cubic-bezier(.2,.7,.2,1)` |
 | A2 | Grifo da manchete (`.marca`) | O fundo amarelo "pinta" da esquerda para a direita: `background-size` de `0% 38%` para `100% 38%` | 700ms; atraso de 350ms (depois de a manchete aparecer) | `ease-out` |
-| A3 | Barra empilhada de votos | Cada segmento cresce com `scaleX(0)` → 1 e `transform-origin: left`, um depois do outro | 600ms; atrasos de 200, 280 e 360ms | mesma de A1 |
+| A3 | Pontos de "Sua cidade em 100 eleitores" ao trocar o ano | Transição de `background-color` e `box-shadow` de cada ponto, em sequência de leitura (`transition-delay: calc(var(--i) * 2ms)`, de 0 a 198ms). Não é animação de entrada: só acontece quando o ano muda | 280ms | `ease` |
 | A4 | Barras de diferença (Comparativo) | Crescem **a partir da linha central**: `transform-origin: left` em `.up` e `right` em `.down` | 500ms; atraso por linha de `--i × 50ms` | mesma de A1 |
 | A5 | Barras pareadas e barras do "Indicador a indicador" | `scaleX` de 0 → 1, da esquerda | 600ms; atraso por linha de 40ms | mesma de A1 |
 | A6 | Barras do ranking "Maiores valores" | Como A5 | 500ms | mesma de A1 |
@@ -660,12 +656,13 @@ CSS de referência:
 ### 9.1 Testes automatizados
 - Todos os testes atuais continuam passando, com as chaves `explore_eleicao`, `mapa_nivel` e `mapa_visao` mantidas. O texto "Aguardando apuração" continua presente, assim como "única zona eleitoral" e "não encontrado".
 - Acrescente:
-  1. Frases de `manchete_explore`, `manchete_comparativo`, `entre_turnos` e `votos`, nos 3 casos cada.
+  1. Frases de `manchete_explore`, `manchete_comparativo` e `entre_turnos`, nos 3 casos cada, e `resumo_100` com plural, singular e zero.
   2. `fmt.mil` e `fmt.milhar_curto`.
   3. `charts.grade_ufs` devolve 27 pontos com qualquer filtro de região, e só os da região com opacidade 1.
   4. `charts.inclinacao` usa eixo X do tipo `category`.
   5. A tela `brasil` com `brasil_eleicao = (2026, 2)` mostra o estado de aguardando, sem exceção.
   6. Abrir o app sem caminho renderiza o Explore.
+  7. Os testes do bloco de 100 eleitores listados na seção 12.8.
 - `ruff` limpo.
 
 ### 9.2 Aceite visual (tarefa 3.0)
@@ -684,7 +681,7 @@ Confira item por item contra o protótipo:
 - [ ] Filtros visíveis em painel (Explore, Mapa, Brasil)
 - [ ] Manchete com grifo no Explore e no Comparativo
 - [ ] Dois heróis e a Leitura rápida na mesma linha (desktop)
-- [ ] Bloco de votos com brancos em amarelo
+- [ ] Bloco "Sua cidade em 100 eleitores" no lugar da antiga barra de votos (checklist próprio na seção 12.9)
 - [ ] Tabela de zonas em cartão, com "Baixar CSV" no cabeçalho
 - [ ] Turnos com barras pareadas e etiquetas de status
 - [ ] Mapa em 3 colunas, 5 faixas, valores nos quadrados e região esmaecendo
@@ -710,5 +707,183 @@ Atualize `docs/planejamento.md` (tarefa 3.0) e `docs/design/tokens.md` (seção 
 | Nível "Municípios" | Só desenhado | Manter o choropleth que já funciona |
 | Seletor "Estado" no painel do mapa | Não existe | Manter (alternativa de teclado) |
 | Zonas descritas como bairros | Não se aplica | Nunca chamar zona eleitoral de bairro |
+
+---
+
+## 11. Loader com o mapa do Brasil
+
+**Referência:** artboard `5 · Loader` do canvas. Os arquivos prontos estão em `docs/design/loader/`:
+- `loader.css`: todo o CSS, com classes prefixadas `bau-`
+- `loader.html`: página de referência; abra no navegador para ver a animação
+
+### 11.1 O que é
+| Variante | Onde usar |
+|---|---|
+| **Tela cheia** (`.bau-loader`) | Primeira carga de cada tela, enquanto `data.*` lê os Parquets. Mapa de 240px que se desenha, se pinta na diagonal (verde, amarelo, azul) e acende 8 capitais. Embaixo: nome, 3 frases que se revezam e barra de progresso tricolor. Ciclo de 3,6s |
+| **Compacto** (`.bau-compacto`, com `.escuro` opcional) | Partes que carregam depois da página, como o choropleth de municípios no Mapa. Mapa de 48px que se pinta em loop, com título e frase ao lado |
+
+### 11.2 Implementação
+1. Cole o conteúdo de `docs/design/loader/loader.css` no fim de `app/assets/style.css`.
+2. Em `app/lib/ui.py`, crie a constante `CONTORNO_BR` com o atributo `d` do path (é o mesmo da logo) e as funções:
+   - `loader_html() -> str`: devolve o HTML do bloco `.bau-loader` de `loader.html`, usando `CONTORNO_BR` nos 2 paths e gerando os 8 `.bau-ponto` a partir de uma lista `CAPITAIS = [(36.8, 23.6), (63.9, 19.6), (86.1, 25.9), (92.6, 35.2), (46.0, 53.3), (65.4, 53.8), (68.4, 72.0), (57.6, 87.5)]`, com `--d` igual ao índice.
+   - `loader_compacto_html(titulo, texto, escuro=False) -> str`: devolve o bloco `.bau-compacto`.
+   - Passe tudo por `ui.html()` (uma linha só), como os outros componentes.
+3. **Troque `ui.esqueleto()` por `ui.carregando()`**, mantendo o mesmo contrato:
+   ```python
+   def carregando():
+       """Loader de tela cheia; chamar .empty() quando os dados chegarem."""
+       espaco = st.empty()
+       espaco.markdown(loader_html(), unsafe_allow_html=True)
+       return espaco
+   ```
+   Atualize as 4 telas (`carregando = ui.esqueleto(3)` vira `carregando = ui.carregando()`). Mantenha `esqueleto()` no código só se ainda houver uso.
+4. No Mapa, em "Municípios", envolva a leitura de `data.municipios_da_uf` e a montagem do choropleth com `loader_compacto_html(f"Carregando {sigla}", "Desenhando os municípios do estado…")`.
+5. Se a busca de município ficar sem resultado ou a página parar com erro, o loader precisa sumir. Confira se todo `st.stop()` vem **depois** de `carregando.empty()`; hoje já é assim nas 4 telas.
+
+### 11.3 Regras
+- **Não atrase a página de propósito.** O loader aparece só enquanto os dados carregam de verdade. Com o cache quente, ele pisca rápido ou nem aparece, e isso está certo.
+- O `id` do gradiente (`bau-ld`) precisa ser único na página: gere-o uma vez no loader de tela cheia e, no compacto, defina um gradiente próprio (`bau-ld-mini`) para funcionar mesmo sem o loader grande na tela.
+- Acessibilidade: `role="status"`, `aria-live="polite"` e o texto escondido "Carregando dados eleitorais". As frases que se revezam ficam com `aria-hidden="true"`.
+- Movimento reduzido: tudo já está dentro de `@media (prefers-reduced-motion: no-preference)`; sem ele, o mapa aparece completo e parado.
+- Alto contraste: acrescente em `contraste.css` `.bau-loader .bau-nome { color: #fff; } .bau-msgs span { color: #fff; } .bau-trilho { background: #333; }`.
+- Confira se o `st.markdown` do Streamlit 1.58 mantém o atributo `pathLength` do SVG. Se ele for removido, troque `stroke-dasharray: 1` por `stroke-dasharray: 420; stroke-dashoffset: 420` (o comprimento aproximado do contorno no viewBox) e ajuste o keyframe `bau-tracar`.
+
+### 11.4 Aceite
+- [ ] Loader de tela cheia aparece ao abrir cada tela com o cache frio (reinicie o app para testar)
+- [ ] Some assim que os dados chegam, sem deixar espaço em branco
+- [ ] Compacto aparece no Mapa ao trocar para "Municípios"
+- [ ] Com "reduzir movimento" ativado no sistema, fica parado
+- [ ] Testes continuam passando
+
+---
+
+## 12. "Sua cidade em 100 eleitores" (tela Explore)
+
+**Referência:** pranchetas do canvas:
+- `1 · Explore seu município`: o bloco no contexto, no computador
+- `1b · Explore seu município · celular`: a tela inteira em 390px
+- `1c · Sua cidade em 100 eleitores · detalhe e estados`: o componente ampliado e o estado sem dados
+
+Esta é uma alteração **localizada**: o resto da tela Explore continua como nas seções 4 e 5.1.
+
+### 12.1 O que muda
+- **Sai:** o bloco "Como foram os votos" / "E quem votou, votou em quê?", com a barra empilhada e os percentuais calculados sobre quem compareceu.
+- **Entra:** o bloco "Sua cidade em 100 eleitores", **abaixo** da grade com os cartões de comparecimento e abstenção e a Leitura rápida, e **antes** do cartão "Zona por zona".
+- **Base dos percentuais:** todo percentual **visível** neste bloco usa como base os **eleitores aptos**. Os percentuais sobre quem votou aparecem só dentro do detalhe "Ver distribuição entre quem votou", com o denominador escrito.
+
+### 12.2 Dados e cálculo
+Fonte: `data.indicadores(cd, ano, turno)` (mart `mart_municipio_benchmark`). Use as **contagens**, não os percentuais prontos.
+
+| Grupo | Contagem | Cor | Descrição na legenda |
+|---|---|---|---|
+| 1 | `validos` | `#12753E` | Votaram em um candidato |
+| 2 | `brancos` | `#F5C400` com anel interno de 1,5px `#9A7700` | Votaram em branco |
+| 3 | `nulos` | `#C2410C` | Votaram nulo |
+| 4 | `aptos − comparecimento` | `#8A929C` | Não compareceram |
+
+- **Denominador:** `aptos`.
+- **Abstenção:** calcule como `aptos − comparecimento`, para os 4 grupos somarem exatamente 100%. Conferido em 25/10/2026: `comparecimento = validos + brancos + nulos` em todas as 16.711 linhas, mas em **2 linhas** `abstencoes + comparecimento ≠ aptos`. Registre essas linhas em `docs/validacao.md` e não esconda a diferença em outra tela.
+- **Percentual exibido:** `contagem / aptos × 100`, com 1 casa decimal (`fmt.pct`).
+- **Pontos (maiores restos):** crie a função pura `data.pontos_100(contagens: list[int], total: int) -> list[int]`:
+  1. `bruto_i = contagem_i / total × 100`
+  2. `pontos_i = floor(bruto_i)`
+  3. `falta = 100 − soma(pontos_i)`
+  4. Some 1 ponto aos `falta` grupos de maior `bruto_i − floor(bruto_i)`. No empate, ganha o grupo de menor índice.
+
+  Com os dados ilustrativos de Campinas 2026, 1º turno, o resultado é 73, 2, 4 e 21.
+- **Cores e ordem dos pontos:** as cores vêm do protótipo e já estão nos tokens (seção 2.1), exceto o cinza da abstenção.
+  - Cinza: `#8A929C` atinge 3:1 contra o branco, que é o mínimo para um elemento gráfico. O cinza claro antigo, `#A9B1BD`, não atinge.
+  - Amarelo: `#F5C400` tem contraste baixo contra o branco, por isso leva o anel `#9A7700`.
+  - Ordem: os pontos são preenchidos **por linha**, da esquerda para a direita e de cima para baixo, na ordem válidos → brancos → nulos → abstenção. Nunca use ordem aleatória.
+
+### 12.3 Ano e turno
+- O **turno** vem do filtro da página (`explore_eleicao`). O bloco não tem seletor de turno.
+- O **ano** tem seletor próprio: `st.segmented_control(["2022", "2026"], key="e100_ano")`, ou um `st.radio` horizontal com o estilo segmentado da seção 3.2.
+  - **Valor inicial:** o ano da consulta atual.
+  - Quando a consulta da página muda, o ano do bloco volta para o ano da consulta. Guarde em `st.session_state["e100_consulta"]` a tupla `(cd_ibge, ano, turno)`. Se ela mudar, redefina `st.session_state["e100_ano"]` **antes** de criar o widget.
+- **Atualizar só o bloco:** envolva o bloco num `@st.fragment`. Assim, trocar o ano reexecuta só o fragmento, e o resto da página nem pisca.
+- Ao lado do seletor, deixe o recorte explícito: "Exibindo **{ano} · {turno}º turno**".
+
+### 12.4 Estado indisponível
+Use este estado quando `data.indicadores(cd, ano, turno)` voltar `None`. Hoje isso acontece em dois casos reais:
+- **2026, 2º turno:** ainda não publicado.
+- **Boa Esperança do Norte (MT) em 2022:** o município só existe a partir de 2026. Os dados de 2022 têm 5.570 municípios e os de 2026 têm 5.571.
+
+Como fica:
+- **Grade:** os 100 pontos em `#E6E8EC`, com uma etiqueta branca no centro, "Sem dados para {ano}" (13px/600, borda `#DCDFE4`, raio de 999px).
+- **Legenda:** no lugar dela, um quadro com borda tracejada de 1px `#888F99` e raio de 12px, com `role="status"`:
+  - Título: "Dados de {ano}, {turno}º turno, indisponíveis"
+  - Texto do 2º turno de 2026: "O 2º turno de 2026 ainda está em apuração. Os pontos aparecem aqui assim que a totalização oficial for publicada. Enquanto isso, veja 2022."
+  - Texto de município sem dados: "Não há dados desta eleição para o município."
+- O detalhe "Ver distribuição entre quem votou" **não** aparece.
+- O seletor de ano continua funcionando.
+- **Nunca** estime ou preencha valores faltantes.
+
+O texto "Aguardando apuração" do aviso da página (seção 5.1.1) continua lá. O bloco usa o texto acima.
+
+### 12.5 Composição e estilo
+É um cartão branco com `border: 1px solid #DCDFE4`, raio de 16px, padding de 28px e 8px de margem acima. Tem fundo branco, sem cinza, para ficar abaixo da manchete na hierarquia.
+
+**Computador (acima de 760px):** use CSS grid:
+```css
+.e100 { display: grid; grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
+  grid-template-areas: "grade cab" "grade corpo"; column-gap: 48px; row-gap: 20px; align-items: start; }
+.e100-grade { grid-area: grade; display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; max-width: 320px; align-self: center; }
+.e100-pt { aspect-ratio: 1 / 1; border-radius: 999px; }
+```
+**Celular (até 760px):** `grid-template-areas: "cab" "grade" "corpo"`, padding de 20px, grade com a largura toda e 5px entre os pontos. **Sem rolagem horizontal.**
+
+Conteúdo de cada área:
+
+| Área | Conteúdo | Estilo |
+|---|---|---|
+| `cab` | Rótulo "PARTICIPAÇÃO" e H3 "Sua cidade em 100 eleitores"; à direita, o seletor 2022 / 2026 e "Exibindo {ano} · {turno}º turno" | Rótulo: 13px/700, maiúsculas, `--green`. H3: Raleway 22px/700, `--navy` (menor que a manchete de 34px). Seletor: segmentado, 40px de altura, 64px de largura mínima por opção. "Exibindo": 13px, `#4A4F57`, com o recorte em negrito `--navy` |
+| `grade` | 100 pontos (`aria-hidden="true"`) | Descrita na seção 12.2 |
+| `corpo` | 1. "Se o eleitorado da sua cidade fosse um grupo de 100 pessoas, a participação seria assim."<br>2. Legenda<br>3. Nota<br>4. Detalhe "Ver distribuição entre quem votou" | Texto: 16px/1.5, `#3A3F47` |
+
+**Legenda:** é uma lista (`<ul>`) de 4 linhas com `grid-template-columns: 14px minmax(0,1fr) auto 60px` e divisórias de 1px `#E6E8EC`. Cada linha tem:
+- círculo de 14px na cor do grupo
+- descrição (15px)
+- "{n} de 100" (13px, `#4A4F57`)
+- percentual sobre os aptos (16px/700, alinhado à direita, algarismos tabulares)
+
+**Nota (12px, `#4A4F57`):** "Percentuais sobre os {aptos} eleitores aptos. Pontos arredondados para somar 100; percentuais exibidos com uma casa decimal." Enquanto o app mostrar dados de exemplo, acrescente "Dados ilustrativos.". Com dados reais do TSE, **não** use esse aviso (seção 0.2).
+
+**Detalhe "Ver distribuição entre quem votou":** use `<details>`/`<summary>` nativos, fechados por padrão. O `summary` é azul, 14px/600, com 44px de altura e uma seta CSS que gira 90° ao abrir. Dentro:
+- "Base: {comparecimento} eleitores que compareceram em {ano}, {turno}º turno. A abstenção fica de fora desta conta."
+- Uma tabela com as colunas Voto / Eleitores / % de quem votou, nas linhas "Em um candidato (válidos)", "Em branco" e "Nulo", e o rodapé "Total de quem votou | {comparecimento} | 100,0%".
+
+O HTML do bloco é montado por `ui.bloco_100(...)` e passa por `ui.html()`, como os outros componentes. O seletor de ano é widget e fica fora do HTML. Monte o cabeçalho com `st.columns([3, 2], vertical_alignment="top")` dentro de `st.container(key="e100")`, e aplique o estilo do cartão na chave `.st-key-e100`.
+
+### 12.6 Acessibilidade
+- **Grade:** fica com `aria-hidden="true"`. Antes dela, coloque um parágrafo **visualmente escondido** com `aria-live="polite"` contendo `narrativa.resumo_100(...)`. O leitor de tela lê uma frase em vez de 100 pontos e ouve a nova frase quando o ano muda.
+- **Cor não é o único sinal:** a legenda tem descrição, "{n} de 100" e o percentual escrito.
+- **Teclado:** seletor de ano e `summary` com foco visível: `outline: 2px solid #071D41; outline-offset: 2px; box-shadow: 0 0 0 5px #F5C400`.
+- **Alto contraste:** os pontos mantêm as cores. O amarelo ganha anel branco de 1,5px; a etiqueta "Sem dados" e o quadro tracejado ficam com fundo preto e texto branco.
+
+### 12.7 Animação
+É só a A3 da seção 7.3: as cores dos pontos mudam em sequência, em até 280ms mais 198ms de atraso, **apenas quando o ano muda**, dentro de `@media (prefers-reduced-motion: no-preference)`. Sem animação de entrada, sem loop, sem 3D e sem gradiente.
+
+O `@st.fragment` reaproveita os mesmos elementos, então a transição de cor acontece. Se o Streamlit recriar o HTML a cada troca e a transição não aparecer, **deixe sem**: a informação não depende dela.
+
+### 12.8 Testes
+1. `data.pontos_100` soma 100 em todos os municípios e eleições da mart (teste em lote, sem GCP).
+2. `data.pontos_100([631391, 17824, 36334, 177863], 863412) == [73, 2, 4, 21]`.
+3. Empate de restos: o grupo de menor índice ganha o ponto.
+4. Explore em `(2026, 2)`: o bloco não aparece, porque a página mostra o aviso de apuração (comportamento atual). Se o bloco for exibido nesse turno, ele mostra o estado indisponível, sem exceção.
+5. Explore de Boa Esperança do Norte (MT) com o bloco em 2022: estado indisponível, sem exceção.
+6. Ao trocar o filtro da página, `e100_ano` volta para o ano da consulta.
+7. Nenhum percentual visível no bloco (fora do `<details>`) usa `comparecimento` como base: confira que a soma dos 4 percentuais visíveis fica entre 99,8% e 100,2%.
+
+### 12.9 Aceite
+- [ ] O bloco aparece entre a grade de cartões e "Zona por zona"; a barra empilhada antiga sumiu
+- [ ] 100 pontos agrupados por cor, na ordem válidos, brancos, nulos e abstenção
+- [ ] A legenda soma 100 pontos; os percentuais usam os aptos como base
+- [ ] Trocar 2022 / 2026 muda só o bloco e o texto "Exibindo"
+- [ ] O detalhe mostra o denominador e os percentuais entre quem votou
+- [ ] Estado indisponível correto em 2026, 2º turno, e em Boa Esperança do Norte (MT) em 2022
+- [ ] Em 390px, a ordem é título e seletor, grade, texto e legenda, sem rolagem horizontal
+- [ ] Leitor de tela lê a frase-resumo e não os pontos
+- [ ] Com "reduzir movimento" ativado, a troca é instantânea
 
 Fim da especificação.

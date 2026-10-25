@@ -1,6 +1,7 @@
 """Leitura das marts em Parquet (o app nunca consulta o BigQuery)."""
 
 import json
+import math
 from pathlib import Path
 
 import pandas as pd
@@ -145,3 +146,21 @@ def malha(sigla: str) -> dict | None:
 def ultima_atualizacao() -> str:
     df = carregar("mart_uf_brasil_indicadores")
     return pd.to_datetime(df["dt_geracao"]).max().strftime("%d/%m/%Y")
+
+
+def pontos_100(contagens: list[int], total: int) -> list[int]:
+    """Distribui 100 pontos pelos grupos pelo método dos maiores restos (empate: menor índice)."""
+    if not total:
+        return [0] * len(contagens)
+    bruto = [c / total * 100 for c in contagens]
+    pontos = [math.floor(b) for b in bruto]
+    ordem = sorted(range(len(bruto)), key=lambda i: (-(bruto[i] - pontos[i]), i))
+    for i in ordem[: 100 - sum(pontos)]:
+        pontos[i] += 1
+    return pontos
+
+
+def contagens_100(ind) -> list[int]:
+    """Válidos, brancos, nulos e quem não compareceu (aptos − comparecimento): somam os aptos."""
+    return [int(ind["validos"]), int(ind["brancos"]), int(ind["nulos"]),
+            int(ind["aptos"]) - int(ind["comparecimento"])]

@@ -30,6 +30,28 @@ def _tabela_html(tabela) -> str:
     return ui.tabela_html(cabecalho, linhas, alta=len(tabela) > 12)
 
 
+@st.fragment
+def bloco_100(mun, ano_consulta: int, turno: int) -> None:
+    """Sua cidade em 100 eleitores: trocar o ano reexecuta só este fragmento."""
+    cd = int(mun["cd_municipio_ibge"])
+    consulta = (cd, ano_consulta, turno)
+    if st.session_state.get("e100_consulta") != consulta:  # a consulta da página mudou
+        st.session_state["e100_consulta"] = consulta
+        st.session_state["e100_ano"] = ano_consulta
+    with st.container(key="e100"):
+        cab, seletor = st.columns([3, 2], vertical_alignment="top")
+        with cab:
+            ui.mostrar(ui.cabecalho_100())
+        with seletor:
+            ano = st.radio("Ano", [2022, 2026], horizontal=True, key="e100_ano",
+                           label_visibility="collapsed")
+            ui.mostrar(ui.exibindo_100(ano, turno))
+        ind = data.indicadores(cd, ano, turno)
+        pontos = None if ind is None else data.pontos_100(data.contagens_100(ind), int(ind["aptos"]))
+        resumo = narrativa.resumo_100(mun["nm_municipio"], ano, turno, pontos)
+        ui.mostrar(ui.bloco_100(ind, pontos, ano, turno, resumo))
+
+
 def render():
     ui.cabecalho("explore")
     ui.abertura("explore")
@@ -46,7 +68,7 @@ def render():
             key="explore_eleicao",
         )
 
-    carregando = ui.esqueleto(3)
+    carregando = ui.carregando()
     try:
         ind = data.indicadores(cd, ano, turno)
         base = data.comparativo(cd, "anos", 2022, 1) if (ano, turno) == (2026, 1) else None
@@ -127,12 +149,7 @@ def render():
         "porcentagens. ▲ azul = aumentou · ▼ laranja = diminuiu.</div>"
     )
 
-    ui.mostrar(ui.bloco_votos(
-        ind["validos_pct"], ind["brancos_pct"], ind["nulos_pct"],
-        ind["validos"], ind["brancos"], ind["nulos"],
-        narrativa.votos(ind["comparecimento"], ind["brancos_nulos_delta_brasil_pp"]),
-        anima, 4,
-    ))
+    bloco_100(mun, ano, turno)
 
     with st.container(key="zonas"):
         cabeca, botao = st.columns([4, 1], vertical_alignment="center")
