@@ -1,0 +1,73 @@
+{
+  "exportado_em": "2026-10-25T04:38:40.175305+00:00",
+  "projeto": "brasil-alem-das-urnas-2026",
+  "local": "US",
+  "testes": [
+    {
+      "teste": "01_unicidade.sql",
+      "falhas": 0
+    },
+    {
+      "teste": "02_integridade.sql",
+      "falhas": 0
+    },
+    {
+      "teste": "03_cobertura.sql",
+      "falhas": 0
+    },
+    {
+      "teste": "04_soma_zonas.sql",
+      "falhas": 0
+    },
+    {
+      "teste": "05_raw_municipio.sql",
+      "falhas": 0
+    },
+    {
+      "teste": "06_totais_brasil.sql",
+      "falhas": 0
+    },
+    {
+      "teste": "07_comparativos.sql",
+      "falhas": 0
+    },
+    {
+      "teste": "08_benchmark.sql",
+      "falhas": 0
+    },
+    {
+      "teste": "09_cobertura_benchmark.sql",
+      "falhas": 0
+    },
+    {
+      "teste": "10_dimensao.sql",
+      "falhas": 0
+    },
+    {
+      "teste": "11_formulas.sql",
+      "falhas": 0
+    }
+  ],
+  "arquivos": {
+    "mart_zona_indicadores.parquet": {
+      "linhas": 18858,
+      "sha256": "4cfed6f772c7b0527280fa78a9cd082b134a5cec41a4a971dbdc841185161ec9"
+    },
+    "mart_municipio_indicadores.parquet": {
+      "linhas": 17259,
+      "sha256": "190d41bdc14ab601ed664b5cca29323cb1dc7dd04138e148d87e2434bd12111d"
+    },
+    "mart_uf_brasil_indicadores.parquet": {
+      "linhas": 87,
+      "sha256": "d94bbf079af7d6e7189c16e5427af1b6734ce7196e3dd7af8dd137d7aba095ad"
+    },
+    "mart_municipio_comparativo.parquet": {
+      "linhas": 22282,
+      "sha256": "8ba135c0fb91d8e9ec4f0308aaba9a07244f9f96efdb08ba7f7c7d128a301c43"
+    },
+    "mart_municipio_benchmark.parquet": {
+      "linhas": 16711,
+      "sha256": "ded5ee29b6b094ca16b4d08266d0da35efe1b2c5c164c353dea29dab7b42eaec"
+    }
+  }
+}

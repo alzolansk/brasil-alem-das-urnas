@@ -50,11 +50,13 @@ Totais do Brasil (com exterior), 1º turno de 2022: 156.454.011 aptos e 123.682.
 | Nulos técnicos | Contam como nulos (usar `QT_TOTAL_VOTOS_NULOS`, como o TSE). Afeta só 2026: 5.246 votos no 1º turno | 25/10/2026 |
 | Exterior (`SG_UF = ZZ`) | Fora do mapa e fora da média "Brasil" usada nas comparações com municípios e UFs, porque o município se compara com o território nacional. Aparece à parte, como "Eleitores no exterior". A validação contra o TSE soma o exterior, porque o total oficial o inclui | 25/10/2026 |
 | Boa Esperança do Norte (MT, código TSE 73709) | Município instalado após 2022: mostra só 2026, com a nota "município instalado após 2022; não há dados de 2022 para comparar". Os municípios de origem recebem a nota de que perderam eleitores para o novo município | 25/10/2026 |
+| Diferença para o painel do TSE | O pipeline usa `detalhe_votacao_munzona`; o painel de comparecimento/abstenção usa `perfil_comparecimento_abstencao`. Diferença no Brasil: menos de 0,03% (maior no exterior). Mantida a fonte de resultados; nota no app. Detalhes em `docs/validacao.md` | 25/10/2026 |
+| "Praticamente igual" nos textos automáticos | Diferença absoluta menor que 0,5 p.p. entre duas taxas. Decidido em 25/10/2026 (valor proposto no rascunho, mantido) | 25/10/2026 |
+| Municípios de origem de Boa Esperança do Norte | Sorriso e Nova Ubiratã (Lei estadual 7.264/2000, validada pelo STF em 2023). A nota de perda de eleitores vai nesses dois municípios | 25/10/2026 |
 | Rezoneamento (32 municípios com zonas criadas ou extintas) | A comparação 2022 × 2026 é feita só no nível do município. A tabela "Zona por zona" mostra apenas o ano selecionado, sem variação entre anos | 25/10/2026 |
 
 ## Decisões pendentes 🧑
-- [ ] Limite para "praticamente igual" nos textos automáticos (proposta: menos de 0,5 p.p.)
-- [ ] Identificar os municípios de origem de Boa Esperança do Norte para a nota acima
+Nenhuma.
 
 ## Limitações
 - A abstenção inclui eleitores que morreram ou mudaram de domicílio e ainda constam no cadastro, o que infla a taxa sobretudo onde o cadastro está desatualizado.

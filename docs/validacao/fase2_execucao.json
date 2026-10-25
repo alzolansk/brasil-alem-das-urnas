@@ -1,0 +1,89 @@
+{
+  "executado_em": "2026-10-25T04:41:19.534495+00:00",
+  "projeto": "brasil-alem-das-urnas-2026",
+  "local": "US",
+  "execucoes": [
+    {
+      "arquivo": "01_staging_dim_municipio.sql",
+      "job_id": "40778a61-3593-4442-892a-a175a78c0684"
+    },
+    {
+      "arquivo": "01_staging_tse_zona.sql",
+      "job_id": "b79a5122-49aa-44d9-9cae-9f9cf0359ec3"
+    },
+    {
+      "arquivo": "02_int_01_zona.sql",
+      "job_id": "0cf90948-36a0-48dd-8cb4-e62764461931"
+    },
+    {
+      "arquivo": "02_int_02_municipio.sql",
+      "job_id": "3f6b76fa-5b97-4dd5-9b7a-8e0f56cab14a"
+    },
+    {
+      "arquivo": "03_mart_01_zona_indicadores.sql",
+      "job_id": "153518cd-6722-44ae-a430-6382ac962348"
+    },
+    {
+      "arquivo": "03_mart_02_municipio_indicadores.sql",
+      "job_id": "071650e4-1473-4bc6-a7ad-9c8c109c4232"
+    },
+    {
+      "arquivo": "03_mart_03_uf_brasil_indicadores.sql",
+      "job_id": "857da0e3-ccae-47ad-b91b-a4b825d70fbf"
+    },
+    {
+      "arquivo": "03_mart_04_municipio_comparativo.sql",
+      "job_id": "a795d515-cc97-49fb-a535-8d8490210aeb"
+    },
+    {
+      "arquivo": "03_mart_05_municipio_benchmark.sql",
+      "job_id": "2e32d4ea-c4bf-4e7f-85a5-5d755e8d4cfb"
+    }
+  ],
+  "testes": [
+    {
+      "teste": "01_unicidade.sql",
+      "falhas": 0
+    },
+    {
+      "teste": "02_integridade.sql",
+      "falhas": 0
+    },
+    {
+      "teste": "03_cobertura.sql",
+      "falhas": 0
+    },
+    {
+      "teste": "04_soma_zonas.sql",
+      "falhas": 0
+    },
+    {
+      "teste": "05_raw_municipio.sql",
+      "falhas": 0
+    },
+    {
+      "teste": "06_totais_brasil.sql",
+      "falhas": 0
+    },
+    {
+      "teste": "07_comparativos.sql",
+      "falhas": 0
+    },
+    {
+      "teste": "08_benchmark.sql",
+      "falhas": 0
+    },
+    {
+      "teste": "09_cobertura_benchmark.sql",
+      "falhas": 0
+    },
+    {
+      "teste": "10_dimensao.sql",
+      "falhas": 0
+    },
+    {
+      "teste": "11_formulas.sql",
+      "falhas": 0
+    }
+  ]
+}
