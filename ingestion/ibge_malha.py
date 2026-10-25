@@ -1,4 +1,5 @@
-"""Malha municipal simplificada do IBGE (GeoJSON por UF) → data/geo/malha_{UF}.geojson."""
+"""Malhas simplificadas do IBGE: municipal por UF (data/geo/malha_{UF}.geojson) e a das UFs
+(data/geo/malha_UF.geojson, para o mapa por estados)."""
 
 import json
 import time
@@ -45,5 +46,22 @@ def baixar_malhas(forcar: bool = False) -> list[str]:
     return falhas
 
 
+def baixar_malha_uf(forcar: bool = False) -> bool:
+    """Baixa o contorno das 27 UFs (propriedade `sg_uf`); devolve False se falhar."""
+    destino = GEO / "malha_UF.geojson"
+    if destino.exists() and not forcar:
+        return True
+    dados = _baixar_uf(carregar_sources()["ibge"]["malha_uf"]["url"])
+    if dados is None:
+        return False
+    sigla = {cod: s for s, cod in UF_CODIGO.items()}
+    for feat in dados.get("features", []):
+        feat["properties"] = {"sg_uf": sigla[int(feat["properties"]["codarea"])]}
+    GEO.mkdir(parents=True, exist_ok=True)
+    destino.write_text(json.dumps(dados, separators=(",", ":")), encoding="utf-8")
+    return True
+
+
 if __name__ == "__main__":
     print("falhas:", baixar_malhas())
+    print("malha das UFs:", "ok" if baixar_malha_uf() else "falhou")

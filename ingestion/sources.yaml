@@ -38,6 +38,9 @@ ibge:
     # GeoJSON por UF (propriedade `codarea` = código IBGE). Um arquivo por UF, para o mapa municipal da UF selecionada.
     url: "https://servicodados.ibge.gov.br/api/v3/malhas/estados/{uf}?formato=application/vnd.geo+json&intrarregiao=municipio&qualidade=minima"
     pagina: "https://www.ibge.gov.br/geociencias/organizacao-do-territorio/malhas-territoriais/15774-malhas.html"
+  malha_uf:
+    # GeoJSON do Brasil dividido por UF (propriedade `codarea` = código IBGE da UF), para o mapa por estados.
+    url: "https://servicodados.ibge.gov.br/api/v3/malhas/paises/BR?formato=application/vnd.geo+json&intrarregiao=UF&qualidade=minima"
 
 filtros:
   cargo: "Presidente"   # valor exato de DS_CARGO

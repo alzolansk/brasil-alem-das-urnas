@@ -56,8 +56,8 @@ RELOGIO = (
 
 
 def html(texto: str) -> str:
-    """Junta as linhas: recuo de 4 espaços viraria bloco de código no markdown."""
-    return "".join(linha.strip() for linha in texto.splitlines())
+    """Junta as linhas com espaço: recuo de 4 espaços viraria bloco de código no markdown."""
+    return " ".join(linha.strip() for linha in texto.splitlines() if linha.strip())
 
 
 def mostrar(texto: str) -> None:

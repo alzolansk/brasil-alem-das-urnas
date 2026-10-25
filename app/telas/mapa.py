@@ -1,4 +1,4 @@
-"""Mapa eleitoral: grade de UFs, lista ordenada e mapa dos municípios de uma UF."""
+"""Mapa eleitoral: mapa dos estados, lista ordenada e mapa dos municípios de uma UF."""
 
 from html import escape
 
@@ -9,7 +9,7 @@ REGIOES = ["Todas", "Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul"]
 NIVEIS = ["Estados", "Municípios"]
 VISOES = ["Mapa", "Lista ordenada"]
 DESCRICAO = {
-    ("Estados", "Mapa"): "Cada quadrado é um estado, posicionado aproximadamente como no mapa. "
+    ("Estados", "Mapa"): "Cada área é um estado, colorido pelo valor do indicador. "
     "Clique para ver o detalhe.",
     ("Estados", "Lista ordenada"): "Estados do maior para o menor valor. Clique em uma linha "
     "para ver o detalhe.",
@@ -39,9 +39,12 @@ def _lista(df, coluna_nome, rotulo_nome, coluna_valor, rotulo_valor, chave, extr
         on_select="rerun",
         selection_mode="single-row",
         column_config={
+            "Posição": st.column_config.TextColumn(width=60),
+            "UF": st.column_config.TextColumn(width=50),
             "barra": st.column_config.ProgressColumn(
-                " ", min_value=0, max_value=float(tabela["barra"].max()), format=" ",
+                " ", min_value=0, max_value=float(tabela["barra"].max()), format=" ", width=110,
             ),
+            rotulo_valor: st.column_config.TextColumn(width=110),
         },
     )
     linhas = evento.selection.rows if evento and evento.selection else []
@@ -135,31 +138,32 @@ def render():
         st.session_state["mapa_uf"] = mun["sg_uf"] if mun["sg_uf"] in siglas else siglas[0]
 
     with centro, st.container(key="mapa_cartao"):
-        cabeca, alternar = st.columns([3, 2], vertical_alignment="top")
-        with alternar:
-            visao = st.radio(
-                "Visualização", VISOES, horizontal=True, key="mapa_visao",
-                label_visibility="collapsed",
-            )
+        titulo = st.empty()
+        visao = st.radio(
+            "Visualização", VISOES, horizontal=True, key="mapa_visao",
+            label_visibility="collapsed",
+        )
         sigla_atual = st.session_state["mapa_uf"]
         recorte = "estado" if nivel == "Estados" else f"município · {sigla_atual}"
-        with cabeca:
-            ui.mostrar(
+        titulo.markdown(
+            ui.html(
                 f"""<div class="sub-cartao-wrap"><h2>{escape(nome)} por {recorte} · {turno}º turno
                 de {ano}</h2><span class="desc-mapa">{DESCRICAO[(nivel, visao)]}</span></div>"""
-            )
+            ),
+            unsafe_allow_html=True,
+        )
 
         if nivel == "Estados" and visao == "Mapa":
-            valores = {s: float(por_sigla.loc[s, coluna]) for s in charts.GRADE_UF}
+            valores = {s: float(por_sigla.loc[s, coluna]) for s in por_sigla.index}
             n = st.session_state.setdefault("mapa_cliques", 0)
-            fig = charts.grade_ufs(valores, sigla_atual, set(estados["localidade"]))
+            fig = charts.mapa_ufs(valores, sigla_atual, set(estados["localidade"]))
             evento = st.plotly_chart(
-                fig, on_select="rerun", selection_mode="points", key=f"mapa_grade_{n}",
+                fig, on_select="rerun", selection_mode="points", key=f"mapa_ufs_{n}",
                 config=charts.SEM_BARRA,
             )
             pontos = evento.selection.points if evento and evento.selection else []
             if pontos:
-                clicado = pontos[0].get("customdata")
+                clicado = pontos[0].get("customdata") or pontos[0].get("location")
                 st.session_state["mapa_cliques"] = n + 1  # novo gráfico, sem seleção pendurada
                 if clicado in siglas:
                     st.session_state["mapa_uf"] = clicado

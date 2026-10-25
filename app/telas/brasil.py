@@ -75,7 +75,9 @@ def render():
         + "</section>"
     )
 
-    series = [(mun["nm_municipio"], ind, "mun"), (nome_uf, uf, "uf"), ("Brasil", br, "br")]
+    # Capital com o mesmo nome do estado (São Paulo, Rio de Janeiro): o estado vira "Estado (SP)".
+    rotulo_uf = nome_uf if nome_uf != mun["nm_municipio"] else f"Estado ({sigla})"
+    series = [(mun["nm_municipio"], ind, "mun"), (rotulo_uf, uf, "uf"), ("Brasil", br, "br")]
     blocos = "".join(
         ui.bloco_indicador(
             data.INDICADORES[i][0],

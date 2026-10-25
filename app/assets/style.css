@@ -21,7 +21,12 @@ h1, h2, h3, .titulo, .numero { font-family: "Raleway", "Inter", sans-serif !impo
 [data-testid="stHeader"], [data-testid="stSidebar"], [data-testid="collapsedControl"], footer,
 [data-testid="stHeaderActionElements"] { display: none !important; }
 .block-container { max-width: 1200px; padding: 0 var(--gutter) 0 !important; }
-[data-testid="stMainBlockContainer"] > div > [data-testid="stVerticalBlock"] { gap: 32px; }
+[data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"] { gap: 32px; }
+/* o Streamlit puxa cada markdown 1rem para cima (compensa a margem do <p>); nos blocos HTML isso cola as seções */
+.stApp [data-testid="stMarkdownContainer"] { margin-bottom: 0 !important; }
+.stApp [data-testid="stMarkdownContainer"] > p:last-child { margin-bottom: 0; }
+/* o bloco que só injeta o <style> não ocupa espaço nem recebe o gap */
+[data-testid="stElementContainer"]:has(style) { display: none; }
 a { color: var(--blue); } a:hover { color: var(--blue-hover); }
 :focus-visible { outline: 3px solid var(--yellow) !important; outline-offset: 2px; }
 [data-testid="stElementContainer"][data-stale="true"] { opacity: .75 !important; transition: opacity .2s; }
@@ -29,7 +34,8 @@ a { color: var(--blue); } a:hover { color: var(--blue-hover); }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* ---- topo: barra utilitária, faixa, cabeçalho ---- */
-.st-key-topo { margin: 0 var(--sangria); width: auto !important; gap: 0 !important; }
+.st-key-topo, .st-key-rodape { width: 100vw !important; max-width: 100vw !important; margin-left: var(--sangria) !important; margin-right: 0 !important; }
+.st-key-topo, .st-key-topo > div { gap: 0 !important; }
 .st-key-utilitaria { background: var(--bg-soft); border-bottom: 1px solid var(--border); padding: 6px var(--miolo); font-size: 13px; color: var(--caption); }
 .st-key-utilitaria p { font-size: 13px !important; color: var(--caption); margin: 0; }
 .st-key-utilitaria [data-testid="stPageLink-NavLink"] { padding: 0; min-height: 32px; background: transparent !important; }
@@ -72,9 +78,9 @@ a { color: var(--blue); } a:hover { color: var(--blue-hover); }
 .abertura { display: flex; flex-direction: column; gap: 8px; }
 .abertura h1 { margin: 0; padding: 0; font-size: 36px; line-height: 1.2; font-weight: 700; }
 .abertura p { margin: 0; font-size: 17px !important; line-height: 1.55 !important; color: var(--muted); max-width: 760px; }
-.contexto { font-size: 14px; font-weight: 600; color: var(--muted); }
+.contexto { font-size: 14px; font-weight: 600; color: var(--muted); margin-bottom: -8px; }
 .rotulo { font: 700 13px "Inter", sans-serif; letter-spacing: .6px; text-transform: uppercase; color: var(--green); }
-.legenda-pp { font-size: 13px; color: var(--caption); margin-top: -16px; }
+.legenda-pp { font-size: 13px; color: var(--caption); margin-top: -20px; }
 
 /* painel de filtros */
 .st-key-filtros, .st-key-mapa_filtros { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
@@ -97,7 +103,8 @@ a { color: var(--blue); } a:hover { color: var(--blue-hover); }
 .st-key-mapa_visao [role="radiogroup"] label:has(input:checked) p { color: #fff !important; }
 .st-key-explore_eleicao label:has(input:focus-visible), .st-key-mapa_nivel label:has(input:focus-visible),
 .st-key-mapa_visao label:has(input:focus-visible), .st-key-mapa_indicador label:has(input:focus-visible) { outline: 3px solid var(--yellow); outline-offset: 2px; }
-.st-key-mapa_visao { display: flex; justify-content: flex-end; }
+.st-key-mapa_visao [role="radiogroup"] { flex-wrap: nowrap; }
+.st-key-mapa_visao label { white-space: nowrap; }
 
 /* indicador do mapa: rádio vertical em linhas */
 .st-key-mapa_indicador [role="radiogroup"] { gap: 4px; }
@@ -269,12 +276,26 @@ table.tab .base { color: var(--caption); } table.tab .comp { font-weight: 600; }
 .esqueleto { height: 110px; border-radius: 16px; background: var(--track); margin: 12px 0; }
 
 /* rodapé */
-.st-key-rodape { background: var(--navy); color: #fff; margin: 48px var(--sangria) 0; padding: 40px var(--miolo); width: auto !important; }
+.st-key-rodape { background: var(--navy); color: #fff; margin-top: 48px; padding: 40px var(--miolo); }
 .st-key-rodape strong { font: 700 18px "Raleway", sans-serif; color: #fff; display: block; margin-bottom: 8px; }
 .st-key-rodape .texto-rodape { font-size: 14px; line-height: 1.55; color: var(--on-dark-muted); max-width: 520px; }
 .st-key-rodape_links { gap: 8px 32px !important; flex-wrap: wrap; justify-content: flex-end; }
 .st-key-rodape [data-testid="stPageLink-NavLink"] { background: transparent !important; padding: 0; min-height: 44px; }
 .st-key-rodape [data-testid="stPageLink-NavLink"] p { color: #fff !important; text-decoration: underline; font-size: 14px !important; }
+
+/* Títulos: o markdown do Streamlit aplica tamanhos próprios a h1–h3 dentro de blocos aninhados;
+   o prefixo .stApp garante a escala do protótipo. */
+.stApp :is(.cab-cartao, .cartao, .turno, .votos .texto, .st-key-mapa_cartao, .st-key-tendencia) :is(h2, h3) {
+  font-size: 22px; font-weight: 700; line-height: 1.3; margin: 0; padding: 0; }
+.stApp .st-key-zonas h3 { font-size: 20px; font-weight: 700; line-height: 1.3; margin: 0; padding: 0; }
+.stApp .secao-cab h2 { font-size: 26px; font-weight: 700; line-height: 1.3; margin: 0; padding: 0; }
+.stApp :is(.escopo h2, .estado-sel h3) { font-size: 24px; font-weight: 700; line-height: 1.25; margin: 0; padding: 0; }
+.stApp .bloco-ind h3 { font: 700 16px/1.4 "Inter", sans-serif !important; margin: 0; padding: 0; }
+.stApp .ranking h3 { font: 700 15px/1.4 "Inter", sans-serif !important; margin: 0; padding: 0; }
+.stApp .heroi h3 { font: 700 16px/1.4 "Inter", sans-serif !important; margin: 0; padding: 0; }
+.stApp .achado h2 { font-size: 34px; line-height: 1.25; font-weight: 700; margin: 0; padding: 0; }
+.stApp .achado.menor h2 { font-size: 32px; }
+.stApp .abertura h1 { font-size: 36px; line-height: 1.2; font-weight: 700; margin: 0; padding: 0; }
 
 /* ---- animações (só no 1º carregamento: classe .anima) ---- */
 @media (prefers-reduced-motion: no-preference) {
@@ -309,8 +330,8 @@ table.tab .base { color: var(--caption); } table.tab .comp { font-weight: 600; }
 }
 @media (max-width: 640px) {
   .grade-herois { grid-template-columns: 1fr; }
-  .abertura h1 { font-size: 28px; }
-  .achado h2, .achado.menor h2 { font-size: 26px; }
+  .stApp .abertura h1 { font-size: 28px; }
+  .stApp .achado h2, .stApp .achado.menor h2 { font-size: 26px; }
   .heroi .numero { font-size: 48px; }
   .heroi .comparacoes { gap: 8px; } .heroi dd { font-size: 12px; }
   .dif { min-width: 90px; }

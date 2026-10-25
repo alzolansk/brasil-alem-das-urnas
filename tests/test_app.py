@@ -186,25 +186,25 @@ def test_votos(delta, fim):
 
 
 @pytest.mark.parametrize("regiao", [None, "Norte", "Sul"])
-def test_grade_ufs_mostra_27_e_esmaece_fora_da_regiao(regiao):
+def test_mapa_ufs_mostra_27_e_esmaece_fora_da_regiao(regiao):
     ufs = data.uf_brasil(2026, 1)
     ufs = ufs[ufs["nivel"] == "UF"]
     valores = dict(zip(ufs["localidade"], ufs["comparecimento_pct"].astype(float), strict=True))
     realce = set(ufs["localidade"] if regiao is None else ufs[ufs["regiao"] == regiao]["localidade"])
-    fig = charts.grade_ufs(valores, "SP", realce)
-    pontos = fig.data[0]
-    assert len(pontos.customdata) == 27
-    opacidade = dict(zip(pontos.customdata, pontos.marker.opacity, strict=True))
+    fig = charts.mapa_ufs(valores, "SP", realce)
+    estados = fig.data[0]
+    assert len(estados.locations) == 27
+    opacidade = dict(zip(estados.locations, estados.marker.opacity, strict=True))
     assert {s for s, o in opacidade.items() if o == 1} == realce
-    assert len(fig.layout.shapes) == 27
-    assert {s.opacity for s in fig.layout.shapes} <= {1, 0.25}
+    assert {o for o in opacidade.values()} <= {1, 0.25}
 
 
-def test_inclinacao_usa_eixo_de_categorias():
+def test_inclinacao_mostra_so_2022_e_2026():
     fig = charts.inclinacao({"Município": (78.0, 76.4), "Estado": (79.0, 77.5), "Brasil": (79.2, 79.2)},
                             {"Município": "X", "Estado": "SP", "Brasil": "Brasil"})
-    assert fig.layout.xaxis.type == "category"
-    assert list(fig.layout.xaxis.categoryarray) == ["2022", "2026"]
+    assert list(fig.layout.xaxis.tickvals) == [0, 1]
+    assert list(fig.layout.xaxis.ticktext) == ["2022", "2026"]
+    assert all(list(t.x) == [0, 1] for t in fig.data)
 
 
 def test_brasil_segundo_turno_2026_aguardando():
