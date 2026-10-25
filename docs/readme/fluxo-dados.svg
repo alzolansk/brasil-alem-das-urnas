@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="215" viewBox="0 0 1120 215" role="img" aria-labelledby="title desc">
+  <title id="title">Dos dados à consulta</title>
+  <desc id="desc">Python ingere e valida os dados do TSE e do IBGE. BigQuery modela e testa. Parquet armazena a exportação. Streamlit apresenta a consulta sem credencial GCP.</desc>
+  <g font-family="Segoe UI, Arial, sans-serif"><rect width="1120" height="215" rx="18" fill="#FFFFFF"/>
+    <rect x="26" y="32" width="243" height="152" rx="14" fill="#F7F9FC" stroke="#D8E0EB"/>
+    <text x="46" y="62" font-size="14" font-weight="700" fill="#12753E">01</text>
+    <text x="46" y="100" font-size="27" font-weight="700" fill="#091E42">Python</text>
+    <text x="46" y="134" font-size="17" fill="#40546F">Ingestão e validação</text>
+    <text x="46" y="161" font-size="15" fill="#586980">TSE + IBGE</text><path d="M276 108h16m-6-5 6 5-6 5" fill="none" stroke="#60738C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="301" y="32" width="243" height="152" rx="14" fill="#F7F9FC" stroke="#D8E0EB"/>
+    <text x="321" y="62" font-size="14" font-weight="700" fill="#12753E">02</text>
+    <text x="321" y="100" font-size="27" font-weight="700" fill="#091E42">BigQuery</text>
+    <text x="321" y="134" font-size="17" fill="#40546F">Modelagem e testes SQL</text>
+    <text x="321" y="161" font-size="15" fill="#586980">Tabelas analíticas</text><path d="M551 108h16m-6-5 6 5-6 5" fill="none" stroke="#60738C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="576" y="32" width="243" height="152" rx="14" fill="#F7F9FC" stroke="#D8E0EB"/>
+    <text x="596" y="62" font-size="14" font-weight="700" fill="#12753E">03</text>
+    <text x="596" y="100" font-size="27" font-weight="700" fill="#091E42">Parquet</text>
+    <text x="596" y="134" font-size="17" fill="#40546F">Exportação dos dados</text>
+    <text x="596" y="161" font-size="15" fill="#586980">Manifesto com hashes</text><path d="M826 108h16m-6-5 6 5-6 5" fill="none" stroke="#60738C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="851" y="32" width="243" height="152" rx="14" fill="#091E42" stroke="#091E42"/>
+    <text x="871" y="62" font-size="14" font-weight="700" fill="#F5C400">04</text>
+    <text x="871" y="100" font-size="27" font-weight="700" fill="#FFFFFF">Streamlit</text>
+    <text x="871" y="134" font-size="17" fill="#D6E3F5">Consulta e visualização</text>
+    <text x="871" y="161" font-size="15" fill="#D6E3F5">Sem credencial GCP</text></g>
+</svg>

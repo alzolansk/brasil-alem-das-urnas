@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="498" viewBox="0 0 1120 498" role="img" aria-labelledby="title desc">
+  <title id="title">Sua cidade em 100 eleitores</title>
+  <desc id="desc">Exemplo ilustrativo, sem vínculo com um município real: 72 votos válidos, 2 brancos, 2 nulos e 24 pessoas que não compareceram.</desc>
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <rect x="1" y="1" width="1118" height="496" rx="20" fill="#F7F9FC" stroke="#D8E0EB"/>
+    <text x="50" y="44" fill="#12753E" font-size="14" letter-spacing="2" font-weight="700">PARTICIPAÇÃO</text>
+    <text x="48" y="88" fill="#091E42" font-size="33" font-weight="700">Sua cidade em 100 eleitores</text>
+    <rect x="840" y="42" width="230" height="35" rx="17" fill="#E7EDF5"/>
+    <text x="955" y="65" text-anchor="middle" fill="#40546F" font-size="14" font-weight="600">EXEMPLO ILUSTRATIVO</text>
+    
+    <circle cx="61" cy="147" r="10.5" fill="#12753E"/>
+    <circle cx="91" cy="147" r="10.5" fill="#12753E"/>
+    <circle cx="121" cy="147" r="10.5" fill="#12753E"/>
+    <circle cx="151" cy="147" r="10.5" fill="#12753E"/>
+    <circle cx="181" cy="147" r="10.5" fill="#12753E"/>
+    <circle cx="211" cy="147" r="10.5" fill="#12753E"/>
+    <circle cx="241" cy="147" r="10.5" fill="#12753E"/>
+    <circle cx="271" cy="147" r="10.5" fill="#12753E"/>
+    <circle cx="301" cy="147" r="10.5" fill="#12753E"/>
+    <circle cx="331" cy="147" r="10.5" fill="#12753E"/>
+    <circle cx="61" cy="177" r="10.5" fill="#12753E"/>
+    <circle cx="91" cy="177" r="10.5" fill="#12753E"/>
+    <circle cx="121" cy="177" r="10.5" fill="#12753E"/>
+    <circle cx="151" cy="177" r="10.5" fill="#12753E"/>
+    <circle cx="181" cy="177" r="10.5" fill="#12753E"/>
+    <circle cx="211" cy="177" r="10.5" fill="#12753E"/>
+    <circle cx="241" cy="177" r="10.5" fill="#12753E"/>
+    <circle cx="271" cy="177" r="10.5" fill="#12753E"/>
+    <circle cx="301" cy="177" r="10.5" fill="#12753E"/>
+    <circle cx="331" cy="177" r="10.5" fill="#12753E"/>
+    <circle cx="61" cy="207" r="10.5" fill="#12753E"/>
+    <circle cx="91" cy="207" r="10.5" fill="#12753E"/>
+    <circle cx="121" cy="207" r="10.5" fill="#12753E"/>
+    <circle cx="151" cy="207" r="10.5" fill="#12753E"/>
+    <circle cx="181" cy="207" r="10.5" fill="#12753E"/>
+    <circle cx="211" cy="207" r="10.5" fill="#12753E"/>
+    <circle cx="241" cy="207" r="10.5" fill="#12753E"/>
+    <circle cx="271" cy="207" r="10.5" fill="#12753E"/>
+    <circle cx="301" cy="207" r="10.5" fill="#12753E"/>
+    <circle cx="331" cy="207" r="10.5" fill="#12753E"/>
+    <circle cx="61" cy="237" r="10.5" fill="#12753E"/>
+    <circle cx="91" cy="237" r="10.5" fill="#12753E"/>
+    <circle cx="121" cy="237" r="10.5" fill="#12753E"/>
+    <circle cx="151" cy="237" r="10.5" fill="#12753E"/>
+    <circle cx="181" cy="237" r="10.5" fill="#12753E"/>
+    <circle cx="211" cy="237" r="10.5" fill="#12753E"/>
+    <circle cx="241" cy="237" r="10.5" fill="#12753E"/>
+    <circle cx="271" cy="237" r="10.5" fill="#12753E"/>
+    <circle cx="301" cy="237" r="10.5" fill="#12753E"/>
+    <circle cx="331" cy="237" r="10.5" fill="#12753E"/>
+    <circle cx="61" cy="267" r="10.5" fill="#12753E"/>
+    <circle cx="91" cy="267" r="10.5" fill="#12753E"/>
+    <circle cx="121" cy="267" r="10.5" fill="#12753E"/>
+    <circle cx="151" cy="267" r="10.5" fill="#12753E"/>
+    <circle cx="181" cy="267" r="10.5" fill="#12753E"/>
+    <circle cx="211" cy="267" r="10.5" fill="#12753E"/>
+    <circle cx="241" cy="267" r="10.5" fill="#12753E"/>
+    <circle cx="271" cy="267" r="10.5" fill="#12753E"/>
+    <circle cx="301" cy="267" r="10.5" fill="#12753E"/>
+    <circle cx="331" cy="267" r="10.5" fill="#12753E"/>
+    <circle cx="61" cy="297" r="10.5" fill="#12753E"/>
+    <circle cx="91" cy="297" r="10.5" fill="#12753E"/>
+    <circle cx="121" cy="297" r="10.5" fill="#12753E"/>
+    <circle cx="151" cy="297" r="10.5" fill="#12753E"/>
+    <circle cx="181" cy="297" r="10.5" fill="#12753E"/>
+    <circle cx="211" cy="297" r="10.5" fill="#12753E"/>
+    <circle cx="241" cy="297" r="10.5" fill="#12753E"/>
+    <circle cx="271" cy="297" r="10.5" fill="#12753E"/>
+    <circle cx="301" cy="297" r="10.5" fill="#12753E"/>
+    <circle cx="331" cy="297" r="10.5" fill="#12753E"/>
+    <circle cx="61" cy="327" r="10.5" fill="#12753E"/>
+    <circle cx="91" cy="327" r="10.5" fill="#12753E"/>
+    <circle cx="121" cy="327" r="10.5" fill="#12753E"/>
+    <circle cx="151" cy="327" r="10.5" fill="#12753E"/>
+    <circle cx="181" cy="327" r="10.5" fill="#12753E"/>
+    <circle cx="211" cy="327" r="10.5" fill="#12753E"/>
+    <circle cx="241" cy="327" r="10.5" fill="#12753E"/>
+    <circle cx="271" cy="327" r="10.5" fill="#12753E"/>
+    <circle cx="301" cy="327" r="10.5" fill="#12753E"/>
+    <circle cx="331" cy="327" r="10.5" fill="#12753E"/>
+    <circle cx="61" cy="357" r="10.5" fill="#12753E"/>
+    <circle cx="91" cy="357" r="10.5" fill="#12753E"/>
+    <circle cx="121" cy="357" r="10.5" fill="#F5C400" stroke="#9A7800" stroke-width="1.5"/>
+    <circle cx="151" cy="357" r="10.5" fill="#F5C400" stroke="#9A7800" stroke-width="1.5"/>
+    <circle cx="181" cy="357" r="10.5" fill="#C43E00"/>
+    <circle cx="211" cy="357" r="10.5" fill="#C43E00"/>
+    <circle cx="241" cy="357" r="10.5" fill="#89929D"/>
+    <circle cx="271" cy="357" r="10.5" fill="#89929D"/>
+    <circle cx="301" cy="357" r="10.5" fill="#89929D"/>
+    <circle cx="331" cy="357" r="10.5" fill="#89929D"/>
+    <circle cx="61" cy="387" r="10.5" fill="#89929D"/>
+    <circle cx="91" cy="387" r="10.5" fill="#89929D"/>
+    <circle cx="121" cy="387" r="10.5" fill="#89929D"/>
+    <circle cx="151" cy="387" r="10.5" fill="#89929D"/>
+    <circle cx="181" cy="387" r="10.5" fill="#89929D"/>
+    <circle cx="211" cy="387" r="10.5" fill="#89929D"/>
+    <circle cx="241" cy="387" r="10.5" fill="#89929D"/>
+    <circle cx="271" cy="387" r="10.5" fill="#89929D"/>
+    <circle cx="301" cy="387" r="10.5" fill="#89929D"/>
+    <circle cx="331" cy="387" r="10.5" fill="#89929D"/>
+    <circle cx="61" cy="417" r="10.5" fill="#89929D"/>
+    <circle cx="91" cy="417" r="10.5" fill="#89929D"/>
+    <circle cx="121" cy="417" r="10.5" fill="#89929D"/>
+    <circle cx="151" cy="417" r="10.5" fill="#89929D"/>
+    <circle cx="181" cy="417" r="10.5" fill="#89929D"/>
+    <circle cx="211" cy="417" r="10.5" fill="#89929D"/>
+    <circle cx="241" cy="417" r="10.5" fill="#89929D"/>
+    <circle cx="271" cy="417" r="10.5" fill="#89929D"/>
+    <circle cx="301" cy="417" r="10.5" fill="#89929D"/>
+    <circle cx="331" cy="417" r="10.5" fill="#89929D"/>
+    <circle cx="437" cy="164" r="8" fill="#12753E"/>
+    <text x="462" y="170" font-size="21" fill="#24364E">Votaram em um candidato</text>
+    <text x="1057" y="170" text-anchor="end" font-size="25" fill="#091E42" font-weight="700">72 de 100</text>
+    <path d="M423 193H1057" stroke="#DFE5EC"/>
+    <circle cx="437" cy="231" r="8" fill="#F5C400" stroke="#9A7800"/>
+    <text x="462" y="237" font-size="21" fill="#24364E">Votaram em branco</text>
+    <text x="1057" y="237" text-anchor="end" font-size="25" fill="#091E42" font-weight="700">2 de 100</text>
+    <path d="M423 260H1057" stroke="#DFE5EC"/>
+    <circle cx="437" cy="298" r="8" fill="#C43E00"/>
+    <text x="462" y="304" font-size="21" fill="#24364E">Votaram nulo</text>
+    <text x="1057" y="304" text-anchor="end" font-size="25" fill="#091E42" font-weight="700">2 de 100</text>
+    <path d="M423 327H1057" stroke="#DFE5EC"/>
+    <circle cx="437" cy="365" r="8" fill="#89929D"/>
+    <text x="462" y="371" font-size="21" fill="#24364E">Não compareceram</text>
+    <text x="1057" y="371" text-anchor="end" font-size="25" fill="#091E42" font-weight="700">24 de 100</text>
+    <path d="M423 394H1057" stroke="#DFE5EC"/>
+    <text x="423" y="441" fill="#586980" font-size="17">Cada ponto equivale a 1 em cada 100 eleitores aptos.</text>
+    <text x="50" y="474" fill="#586980" font-size="15">Na aplicação, a distribuição é calculada com os dados do município, ano e turno selecionados.</text></g>
+</svg>
