@@ -40,8 +40,12 @@ FAIXA_ETARIA = {
     8589: ("85 a 89 anos", True), 9094: ("90 a 94 anos", True), 9599: ("95 a 99 anos", True),
     9999: ("100 anos ou mais", True),
 }  # fmt: skip
-# Voto facultativo (Constituição, art. 14): 16 e 17 anos e 70 anos ou mais.
-FACULTATIVO = {1600, 1700, 7074, 7579, 8084, 8589, 9094, 9599, 9999}
+# Voto facultativo (Constituição, art. 14, § 1º, II): analfabetos, maiores de 70 anos e quem tem
+# 16 ou 17 anos. Por isso as faixas de 18 a 69 anos também incluem quem não é obrigado a votar.
+FACULTATIVO = {
+    "faixa_etaria": {1600, 1700, 7074, 7579, 8084, 8589, 9094, 9599, 9999},
+    "escolaridade": {1},  # Analfabeto
+}
 
 # dimensão -> (sufixo da coluna no CSV por ano, categorias)
 DIMENSOES = {
@@ -156,7 +160,8 @@ def montar_mart(marginais: pd.DataFrame, dim: pd.DataFrame) -> tuple[pd.DataFram
         columns=["dimensao", "cd_categoria", "categoria", "informado", "ordem"],
     )
     m = m.merge(info, on=["dimensao", "cd_categoria"], how="left")
-    m["voto_facultativo"] = (m["dimensao"] == "faixa_etaria") & m["cd_categoria"].isin(FACULTATIVO)
+    m["voto_facultativo"] = [cd in FACULTATIVO.get(d, ()) for d, cd in
+                             zip(m["dimensao"], m["cd_categoria"], strict=True)]
     m["abstencao_pct"] = (100 * m["abstencoes"] / m["aptos"]).where(m["aptos"] > 0)
     colunas = ["ano", "turno", "sg_uf", "cd_municipio_tse", "cd_municipio_ibge", "nm_municipio",
                "dimensao", "cd_categoria", "categoria", "ordem", "informado", "voto_facultativo",

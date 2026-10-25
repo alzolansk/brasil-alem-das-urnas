@@ -16,8 +16,9 @@ TEXTOS = {
 - **Eleições:** Presidente da República, {eleicoes}.
 - **Fonte dos resultados:** Portal de Dados Abertos do TSE (detalhe da votação por município e zona).
 - **Quem ficou em casa?:** perfil do eleitorado que compareceu e que se absteve, também do TSE
-  (gênero, faixa etária e escolaridade). É a base do painel oficial de comparecimento; por isso a
-  taxa do município nessa tela pode diferir em alguns décimos da do Explore.
+  (gênero, faixa etária e escolaridade). É a base do painel oficial de comparecimento, diferente da
+  usada nas outras telas. As taxas podem diferir entre as bases; normalmente a diferença é
+  pequena, mas há exceções.
 - **Municípios:** IBGE (códigos, regiões e malhas). Os votos do exterior ficam fora do mapa e dos
   municípios, mas entram no total do Brasil, indicado como "Brasil + Exterior" (como no total
   oficial do TSE).

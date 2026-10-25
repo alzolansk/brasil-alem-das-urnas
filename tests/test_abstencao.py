@@ -110,7 +110,10 @@ def test_mart_regras_de_qualidade(mart):
     assert ing.validar_mart(mart, MUNICIPIOS_ESPERADOS) == []
     assert (mart["abstencao_pct"] - 100 * mart["abstencoes"] / mart["aptos"]).abs().max() < 1e-9
     assert mart["abstencao_pct"].between(0, 100).all()
-    assert not mart.loc[mart["voto_facultativo"], "dimensao"].ne("faixa_etaria").any()
+    facultativos = set(map(tuple, mart.loc[mart["voto_facultativo"], ["dimensao", "cd_categoria"]]
+                           .drop_duplicates().values))  # fmt: skip
+    assert facultativos == {(d, cd) for d, cds in ing.FACULTATIVO.items() for cd in cds}
+    assert ("escolaridade", 1) in facultativos  # analfabetos (CF, art. 14, § 1º, II)
 
 
 def test_mart_categorias_iguais_em_2022_e_2026(mart):
@@ -161,7 +164,7 @@ BASE = [
     ("genero", 4, "Feminino", 2, 5_000, 950, False),
     ("genero", 2, "Masculino", 1, 4_990, 1_045, False),
     ("genero", 0, "Não informado", 99, 10, 5, False),
-    ("escolaridade", 1, "Analfabeto", 1, 500, 300, False),
+    ("escolaridade", 1, "Analfabeto", 1, 500, 300, True),
     ("escolaridade", 8, "Superior completo", 8, 9_500, 1_700, False),
 ]
 
@@ -213,31 +216,33 @@ def _revelam(df, historico=("pendente", None)):
 
 def test_o_que_os_dados_revelam_com_numeros_reais_do_df():
     itens = _revelam(_df(BASE))
-    assert itens[0] == ("Em X, 20,0% dos 10.000 eleitores aptos não foram votar no 1º turno de "
-                        "2026: 2.000 pessoas.")  # fmt: skip
-    assert itens[1] == ("A maior taxa de abstenção por idade ocorreu entre eleitores de 21 a 24 "
-                        "anos, atingindo 30,0% (900 de 3.000 eleitores).")  # fmt: skip
-    assert itens[2] == "A menor taxa por idade ficou entre eleitores de 16 anos (10,0%)."
-    assert itens[3] == ("Por gênero, a abstenção foi de 19,0% no feminino e de 20,9% no masculino, "
-                        "uma diferença de 1,9 p.p.")  # fmt: skip
-    assert itens[4] == ("A taxa de abstenção de eleitores analfabetos ficou 40,0 p.p. acima da média "
-                        "municipal (60,0% contra 20,0%), a maior entre os níveis de escolaridade; a "
-                        "menor foi entre eleitores com superior completo (17,9%).")  # fmt: skip
-    assert "ainda não publicou o perfil do 1º turno" in itens[5]
+    assert itens == [
+        "Em X, 20,0% dos eleitores aptos (2.000 de 10.000) não foram votar no 1º turno de 2026.",
+        "Entre as faixas de 18 a 69 anos, a abstenção foi maior entre eleitores de 21 a 24 anos "
+        "(30,0%) e menor entre os de 55 a 59 anos (10,0%).",
+        "A taxa de abstenção de eleitores analfabetos, que têm voto facultativo, ficou 40,0 p.p. "
+        "acima da média municipal (60,0% contra 20,0%); a menor foi entre eleitores com superior "
+        "completo (17,9%).",
+        "Por gênero, a abstenção foi de 19,0% no feminino e de 20,9% no masculino, uma diferença "
+        "de 1,9 p.p.",
+        "O TSE ainda não publicou o perfil do 1º turno de 2026; a comparação com 2022 neste turno "
+        "aparece quando ele sair.",
+    ]
 
 
-def test_maior_taxa_em_idade_facultativa_destaca_as_idades_obrigatorias():
+def test_idade_facultativa_vem_depois_e_como_registro_do_cadastro():
     linhas = [r if r[1] != 8084 else (*r[:4], 3_860, 2_500, True) for r in BASE]
     itens = _revelam(_df(linhas))
-    assert itens[1].startswith("A maior taxa de abstenção por idade ocorreu entre eleitores de 80 a 84")
-    assert itens[1].endswith("Nessa idade, o voto é facultativo.")
-    assert itens[2] == ("Nas idades em que o voto é obrigatório (18 a 69 anos), a taxa foi maior "
-                        "entre eleitores de 21 a 24 anos (30,0%) e menor entre os de 55 a 59 anos "
-                        "(10,0%).")  # fmt: skip
+    assert itens[1].startswith("Entre as faixas de 18 a 69 anos, a abstenção foi maior entre "
+                               "eleitores de 21 a 24 anos")  # fmt: skip
+    assert itens[4] == ("Nas idades de voto facultativo, a taxa mais alta foi a dos registros de "
+                        "eleitores de 80 a 84 anos no cadastro eleitoral: 64,8% (2.500 de 3.860).")  # fmt: skip
+    assert not any("obrigatório" in item for item in itens)  # analfabetos também são facultativos
 
 
-def test_genero_praticamente_igual_e_historico():
+def test_genero_praticamente_igual_e_historico_com_limite_de_seis():
     linhas = [r if r[0] != "genero" or r[1] == 0 else (*r[:4], 5_000, 1_000, False) for r in BASE]
+    linhas = [r if r[1] != 8084 else (*r[:4], 3_860, 2_500, True) for r in linhas]
     df = _df(linhas)
     antes = _df(linhas, 2022)
     variacao = [0, 0, 3, -2, 0, 0, 0, 0, 0, 0, 0, 0]  # +3 p.p. em 21 a 24 anos, −2 em 55 a 59
@@ -245,24 +250,45 @@ def test_genero_praticamente_igual_e_historico():
     alta, queda = perfil.maiores_variacoes(c)
     tot = perfil.total(df)
     itens = _revelam(df, ("disponivel", (tot, tot, alta, queda)))
-    assert "Por gênero, a abstenção foi praticamente igual: 20,0% no feminino e 20,0% no masculino." in itens
-    assert ("No total, a abstenção ficou praticamente igual entre o 1º turno de 2022 e o de 2026 "
-            "(de 20,0% para 20,0%).") in itens  # fmt: skip
-    assert ("Entre 2022 e 2026, a abstenção de eleitores de 21 a 24 anos aumentou 3,0 p.p., a maior "
-            "alta entre os grupos (de 30,0% para 33,0%).") in itens  # fmt: skip
-    assert ("A maior queda foi entre eleitores de 55 a 59 anos: 2,0 p.p. a menos (de 10,0% para "
-            "8,0%).") in itens  # fmt: skip
+    assert len(itens) == narrativa.MAX_REVELAM == 6
+    assert itens[0].endswith("no 1º turno de 2026. Em 2022, eram 20,0%.")
+    assert itens[2] == ("Entre 2022 e 2026, a abstenção de eleitores de 21 a 24 anos aumentou 3,0 "
+                        "p.p., a maior alta entre os grupos (de 30,0% para 33,0%).")  # fmt: skip
+    assert itens[4] == "Por gênero, a abstenção foi praticamente igual: 20,0% no feminino e 20,0% no masculino."
+    assert itens[5] == ("A maior queda foi entre eleitores de 55 a 59 anos: 2,0 p.p. a menos (de "
+                        "10,0% para 8,0%).")  # fmt: skip
+    # a frase das idades facultativas tem prioridade menor e fica fora do limite
+    assert not any("registros" in item for item in itens)
     sem = _revelam(df, ("sem_base", None))
     assert sem[-1].startswith("Não há dados de 2022 para X")
 
 
+def test_tres_primeiros_itens_de_sao_paulo_priorizam_jovens_adultos():
+    df = data.perfil(SAO_PAULO, 2026, 1)
+    base = data.perfil(SAO_PAULO, 2022, 1)
+    alta, queda = perfil.maiores_variacoes(perfil.comparacao(base, df))
+    itens = _revelam(df, ("disponivel", (perfil.total(base), perfil.total(df), alta, queda)))
+    assert len(itens) <= 6
+    assert "21 a 24 anos" in itens[1] and "100 anos" not in " ".join(itens[:3])
+
+
+def test_cartao_mostra_tres_e_o_resto_em_ver_mais():
+    from app.lib import ui
+
+    html = ui.cartao_leitura(["a", "b", "c", "d", "e"], rotulo="O que os dados revelam?", visiveis=3)
+    visivel, escondido = html.split('<details class="mais">')
+    assert visivel.count("<li>") == 3 and escondido.count("<li>") == 2
+    assert "Ver mais (2)" in escondido and '<ol start="4">' in escondido
+    assert "<details" not in ui.cartao_leitura(["a", "b"], visiveis=3)
+
+
 def test_textos_descrevem_sem_atribuir_causa():
-    proibidas = ("porque", "devido", "motivo", "causa", "por causa", "desinteresse", "culpa")
+    proibidas = ("porque", "devido", "motivo", "causa", "desinteresse", "culpa", "óbito", "morre")
     df = data.perfil(SAO_PAULO, 2026, 1)
     c = perfil.comparacao(data.perfil(SAO_PAULO, 2022, 1), df)
     alta, queda = perfil.maiores_variacoes(c)
     hist = ("disponivel", (perfil.total(data.perfil(SAO_PAULO, 2022, 1)), perfil.total(df), alta, queda))
-    texto = " ".join(_revelam(df, hist)).casefold()
+    texto = " ".join(_revelam(df, hist) + _revelam(df)).casefold()
     assert not [p for p in proibidas if p in texto]
 
 
@@ -348,3 +374,39 @@ def test_aba_na_navegacao_principal():
     at = abrir("explore")
     assert not at.exception
     assert "Quem ficou em casa?" in [link.proto.label for link in at.get("page_link")]
+
+
+def _lista(at, contem: str) -> str:
+    return next(m.value for m in at.markdown if 'class="grupos' in m.value and contem in m.value)
+
+
+def test_filtros_de_voto_facultativo_em_cada_secao():
+    at = abrir("abstencao")
+    assert "Voto facultativo: analfabetos" in _html(at)
+    assert "registros de 100 anos ou mais" in _html(at)  # contexto junto do gráfico de idade
+    at.toggle(key="abstencao_fac_faixa_etaria").set_value(False).run()
+    assert not at.exception
+    idade = _lista(at, "18 anos")
+    assert "16 anos" not in idade and "100 anos ou mais" not in idade and "65 a 69 anos" in idade
+    assert "Idades de voto facultativo ocultas pelo filtro" in _html(at)
+    assert "registros de 100 anos ou mais" not in _html(at)
+    barra = '<span class="nome">Analfabeto'
+    assert barra in _lista(at, "Superior completo")  # o filtro é só da seção
+    at.toggle(key="abstencao_fac_escolaridade").set_value(False).run()
+    assert barra not in _lista(at, "Superior completo")
+    assert "Analfabetos ocultos pelo filtro" in _html(at)
+    tabela = next(m.value for m in at.markdown if "Aptos em 2026" in m.value)
+    assert "16 anos" in tabela
+    at.toggle(key="abstencao_fac_historico").set_value(False).run()
+    tabela = next(m.value for m in at.markdown if "Aptos em 2026" in m.value)
+    assert "16 anos" not in tabela and "70 a 74 anos" not in tabela and "Todos os eleitores" in tabela
+
+
+def test_legenda_e_nota_nao_chamam_18_a_69_de_obrigatorio():
+    at = abrir("abstencao")
+    html = _html(at)
+    assert "Voto obrigatório" not in html and "voto obrigatório" not in html
+    assert "Analfabetos têm voto facultativo em qualquer idade" in html
+    assert "As taxas podem diferir entre as bases; normalmente a diferença é pequena, mas há exceções." in html
+    assert "décimos" not in html
+    assert "Ver mais (" in html

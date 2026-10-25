@@ -47,7 +47,8 @@ h1, h2, h3, .titulo, .numero { color: #fff !important; }
 .st-key-e100_ano [role="radiogroup"] label:has(input:checked) p { color: #000 !important; }
 .st-key-e100_ano label p { color: var(--yellow) !important; }
 /* Quem ficou em casa? */
-.st-key-abstencao_idade, .st-key-abstencao_historico { background: #000; border-color: #fff; }
+.st-key-abstencao_idade, .st-key-abstencao_historico, .st-key-abstencao_escolaridade { background: #000; border-color: #fff; }
+.escuro details.mais summary { color: #fff !important; }
 :is(.st-key-abstencao_eleicao, .st-key-abstencao_ordem, .st-key-abstencao_hist_dim) [role="radiogroup"] { background: #000; border-color: var(--yellow); }
 :is(.st-key-abstencao_eleicao, .st-key-abstencao_ordem, .st-key-abstencao_hist_dim) [role="radiogroup"] label:has(input:checked) { background: var(--yellow); }
 :is(.st-key-abstencao_eleicao, .st-key-abstencao_ordem, .st-key-abstencao_hist_dim) [role="radiogroup"] label:has(input:checked) p { color: #000 !important; }

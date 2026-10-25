@@ -366,12 +366,22 @@ def cartao_heroi(titulo, valor, frase, comparacoes, anima: str = "", i: int = 0)
 
 
 def cartao_leitura(itens, link: tuple | None = None, anima: str = "", i: int = 0,
-                   rotulo: str = "Leitura rápida") -> str:
-    """link: (texto, href) opcional no rodapé do cartão."""
-    lista = "".join(
-        f'<li><b aria-hidden="true">{n}</b><span>{escape(item)}</span></li>'
-        for n, item in enumerate(itens, start=1)
-    )
+                   rotulo: str = "Leitura rápida", visiveis: int | None = None) -> str:
+    """link: (texto, href) opcional no rodapé do cartão. Com `visiveis`, os itens seguintes ficam
+    num <details> "Ver mais" (numeração contínua, abre pelo teclado sem JavaScript)."""
+
+    def _itens(trecho, inicio):
+        return "".join(
+            f'<li><b aria-hidden="true">{n}</b><span>{escape(item)}</span></li>'
+            for n, item in enumerate(trecho, start=inicio)
+        )
+
+    corte = len(itens) if visiveis is None else visiveis
+    corpo = f"<ol>{_itens(itens[:corte], 1)}</ol>"
+    if len(itens) > corte:
+        corpo += (f'<details class="mais"><summary><span class="ver-mais">Ver mais '
+                  f'({len(itens) - corte})</span><span class="ver-menos">Ver menos</span></summary>'
+                  f'<ol start="{corte + 1}">{_itens(itens[corte:], corte + 1)}</ol></details>')
     rodape_link = (
         f'<a class="link-claro" href="{escape(link[1])}" target="_self">{escape(link[0])} '
         '<span aria-hidden="true">→</span></a>'
@@ -380,7 +390,7 @@ def cartao_leitura(itens, link: tuple | None = None, anima: str = "", i: int = 0
     )
     return html(
         f"""<aside class="escuro{anima}" style="--i:{i}"><span class="rotulo">{escape(rotulo)}</span>
-        <ol>{lista}</ol>{rodape_link}</aside>"""
+        {corpo}{rodape_link}</aside>"""
     )
 
 
@@ -527,12 +537,13 @@ def barras_grupos(linhas, media: float, maior=None, menor=None, anima: str = "")
     return html(f'<ul class="grupos{anima}" style="--media:{media:.2f}%">{"".join(itens)}</ul>')
 
 
-def legenda_grupos(media: float, facultativo: bool = False, pequena: bool = False) -> str:
+def legenda_grupos(media: float, cores: tuple[str, str] | None = None, pequena: bool = False) -> str:
+    """cores: (rótulo da barra escura, rótulo da barra clara = grupos com voto facultativo)."""
     itens = []
-    if facultativo:
-        itens += ['<span><i class="quadrado" style="background:var(--blue)"></i>Voto obrigatório</span>',
-                  '<span><i class="quadrado" style="background:var(--blue-2t)"></i>Voto facultativo</span>']
-    itens.append(f'<span><i class="traco-media"></i>Média do município ({fmt.pct(media)})</span>')
+    if cores:
+        itens += [f'<span><i class="quadrado" style="background:var(--blue)"></i>{escape(cores[0])}</span>',
+                  f'<span><i class="quadrado" style="background:var(--blue-2t)"></i>{escape(cores[1])}</span>']
+    itens.append(f'<span><i class="traco-media"></i>Média do município, todos os eleitores ({fmt.pct(media)})</span>')
     if pequena:
         itens.append(f"<span>* menos de {perfil.BASE_MINIMA} eleitores aptos: percentual instável</span>")
     return f'<div class="legenda-linha legenda-grupos">{"".join(itens)}</div>'

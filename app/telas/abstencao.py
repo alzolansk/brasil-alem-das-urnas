@@ -16,6 +16,17 @@ FORA_DO_GRAFICO = {
     "genero": "sem gênero informado no cadastro",
     "escolaridade": "sem escolaridade informada no cadastro",
 }
+# dimensão -> (rótulo do filtro, legenda das barras escura/clara, aviso quando ocultos)
+FACULTATIVO = {
+    "faixa_etaria": ("Mostrar idades de voto facultativo (16, 17 e 70 anos ou mais)",
+                     ("18 a 69 anos", "Voto facultativo: 16, 17 e 70 anos ou mais"),
+                     "Idades de voto facultativo ocultas pelo filtro"),
+    "escolaridade": ("Mostrar analfabetos (voto facultativo)",
+                     ("Demais níveis", "Voto facultativo: analfabetos"),
+                     "Analfabetos ocultos pelo filtro"),
+}
+DIFERENCA_BASES = ("As outras telas usam os resultados por seção eleitoral, outra base do TSE. As taxas "
+                   "podem diferir entre as bases; normalmente a diferença é pequena, mas há exceções.")
 
 
 def _historico(cd: int, ano: int, turno: int):
@@ -30,11 +41,34 @@ def _historico(cd: int, ano: int, turno: int):
     return "disponivel", (perfil.total(base), perfil.total(comp), alta, queda, c)
 
 
-def _rodape_grupo(df, dimensao: str, g) -> str:
-    """Legenda, aviso dos não informados e tabela de um cartão de grupo."""
+def _filtro_facultativo(dimensao: str) -> bool:
+    """Interruptor da seção: True = mostra os grupos com voto facultativo."""
+    return st.toggle(FACULTATIVO[dimensao][0], value=True, key=f"abstencao_fac_{dimensao}")
+
+
+def _contexto_idade_alta(df, nome: str) -> str:
+    """Contexto junto do gráfico para as faixas mais altas, sem atribuir causa."""
+    centenarios = df[(df["dimensao"] == "faixa_etaria") & (df["cd_categoria"] == 9999)]
+    if centenarios.empty or int(centenarios.iloc[0]["aptos"]) == 0:
+        return ""
+    c = centenarios.iloc[0]
+    return (f'<p class="fora-grafico">As faixas de 70 anos ou mais reúnem registros do cadastro '
+            f"eleitoral com voto facultativo. Em {escape(nome)}, há {fmt.inteiro(c['aptos'])} registros "
+            f"de 100 anos ou mais, com {fmt.pct(c['abstencao_pct'])} de abstenção. Os dados mostram a "
+            "ausência desses registros, não o motivo.</p>")
+
+
+def _rodape_grupo(df, dimensao: str, g, mostra_facultativo: bool = True) -> str:
+    """Legenda, avisos (não informados, grupos ocultos) e tabela de um cartão de grupo."""
     tot = perfil.total(df)
-    partes = [ui.legenda_grupos(tot["abstencao_pct"], dimensao == "faixa_etaria",
-                                bool(g["base_pequena"].any()))]  # fmt: skip
+    cores = FACULTATIVO[dimensao][1] if dimensao in FACULTATIVO and mostra_facultativo else None
+    partes = [ui.legenda_grupos(tot["abstencao_pct"], cores, bool(g["base_pequena"].any()))]
+    if not mostra_facultativo:
+        ocultos = perfil.grupos(df, dimensao)
+        ocultos = ocultos[ocultos["voto_facultativo"]]
+        partes.append(f'<p class="fora-grafico">{FACULTATIVO[dimensao][2]}: '
+                      f"{fmt.inteiro(ocultos['aptos'].sum())} eleitores. Eles continuam na média do "
+                      "município.</p>")
     fora = perfil.nao_informados(df, dimensao)
     if fora:
         quem = "eleitor" if fora == 1 else "eleitores"
@@ -50,18 +84,29 @@ def _cabecalho_cartao(titulo: str, dimensao: str) -> str:
             f'<span class="sub-cartao">{escape(SUBTITULOS[dimensao])}</span></div>')
 
 
-def _cartao_html(df, dimensao: str, titulo: str, anima: str, i: int) -> str:
-    g = perfil.grupos(df, dimensao)
-    barras = ui.barras_grupos(g, perfil.total(df)["abstencao_pct"], *perfil.destaques(g))
+def _barras(df, g, anima: str = "") -> str:
+    return ui.barras_grupos(g, perfil.total(df)["abstencao_pct"], *perfil.destaques(g), anima)
+
+
+def _genero(df, anima: str) -> str:
+    g = perfil.grupos(df, "genero")
     return ui.html(
-        f"""<section class="cartao cartao-grupos{anima}" style="--i:{i}">{_cabecalho_cartao(titulo, dimensao)}
-        {barras}{_rodape_grupo(df, dimensao, g)}</section>"""
+        f"""<section class="cartao cartao-grupos{anima}" style="--i:3">{_cabecalho_cartao("Por gênero", "genero")}
+        {_barras(df, g)}{_rodape_grupo(df, "genero", g)}</section>"""
     )
 
 
-def _idade(df, anima: str) -> None:
-    g = perfil.grupos(df, "faixa_etaria")
-    maior, menor = perfil.destaques(g)
+def _escolaridade(df) -> None:
+    with st.container(key="abstencao_escolaridade"):
+        ui.mostrar(_cabecalho_cartao("Por escolaridade", "escolaridade"))
+        mostra = _filtro_facultativo("escolaridade")
+        g = perfil.grupos(df, "escolaridade")
+        if not mostra:
+            g = g[~g["voto_facultativo"]]
+        ui.mostrar(_barras(df, g) + _rodape_grupo(df, "escolaridade", g, mostra))
+
+
+def _idade(df, nome: str, anima: str) -> None:
     with st.container(key="abstencao_idade"):
         cab, ordem_col = st.columns([3, 2], vertical_alignment="top")
         with cab:
@@ -69,10 +114,19 @@ def _idade(df, anima: str) -> None:
         with ordem_col:
             ordem = st.radio("Ordenar", ORDENS, horizontal=True, key="abstencao_ordem",
                              label_visibility="collapsed")
+        mostra = _filtro_facultativo("faixa_etaria")
+        g = perfil.grupos(df, "faixa_etaria")
+        if not mostra:
+            g = g[~g["voto_facultativo"]]
+        destaques = perfil.destaques(g)
         if ordem == ORDENS[1]:
             g = g.sort_values(["abstencao_pct", "ordem"], ascending=[False, True])
-        ui.mostrar(ui.barras_grupos(g, perfil.total(df)["abstencao_pct"], maior, menor, anima))
-        ui.mostrar(_rodape_grupo(df, "faixa_etaria", g))
+        ui.mostrar(ui.barras_grupos(g, perfil.total(df)["abstencao_pct"], *destaques, anima))
+        avisos = ('<p class="fora-grafico">Analfabetos têm voto facultativo em qualquer idade; por '
+                  "isso, as faixas de 18 a 69 anos não reúnem só quem é obrigado a votar.</p>")
+        if mostra:
+            avisos += _contexto_idade_alta(df, nome)
+        ui.mostrar(avisos + _rodape_grupo(df, "faixa_etaria", g, mostra))
 
 
 def _tabela_historico(c, dimensao: str) -> str:
@@ -124,6 +178,10 @@ def _comparacao(mun, turno: int, historico) -> None:
                                 format_func=perfil.DIMENSOES.get, key="abstencao_hist_dim",
                                 label_visibility="collapsed")
         c = dados[-1]
+        if dimensao in FACULTATIVO and not st.toggle(
+            "Mostrar grupos de voto facultativo", value=True, key="abstencao_fac_historico"
+        ):
+            c = c[~c["voto_facultativo"] | (c["dimensao"] == "total")]
         ui.mostrar(ui.legenda_aumento())
         ui.mostrar(_tabela_historico(c, dimensao))
         pequena = not c[c["dimensao"].isin(["total", dimensao])]["comparavel"].all()
@@ -144,15 +202,17 @@ def _nota_metodologica(df) -> str:
         "identificam o comportamento de ninguém e não explicam por que alguém deixou de votar.",
         "<b>Uma característica por vez:</b> cada gráfico olha só a idade, o gênero ou a "
         "escolaridade. Diferenças entre grupos podem se sobrepor (por exemplo, idade e escolaridade).",
-        "<b>Voto facultativo</b> para quem tem 16 ou 17 anos ou 70 anos ou mais (Constituição, art. 14).",
-        "<b>Cadastro:</b> a abstenção inclui eleitores que morreram ou mudaram de cidade e ainda "
-        "constam no cadastro, o que pesa mais nas faixas de idade mais altas.",
+        "<b>Voto facultativo</b> para analfabetos, para quem tem 16 ou 17 anos e para quem tem 70 anos "
+        "ou mais (Constituição, art. 14, § 1º, II). Os filtros de cada seção mostram ou ocultam "
+        "esses grupos.",
+        "<b>Registros do cadastro:</b> os grupos são formados pelos registros do cadastro eleitoral. "
+        "Nas faixas de idade mais altas, a abstenção passa de 90%; o TSE não detalha a situação "
+        "desses registros, e esta tela não atribui o resultado a uma causa.",
         f"<b>Grupos pequenos:</b> com menos de {perfil.BASE_MINIMA} eleitores aptos, o percentual "
         "aparece com * e fica fora dos destaques e das frases automáticas.",
         "<b>Fonte:</b> TSE, perfil do eleitorado que compareceu e que se absteve "
-        f"(perfil_comparecimento_abstencao), arquivo gerado em {gerado}. Essa base é a do painel "
-        "oficial de comparecimento do TSE; as outras telas usam os resultados por seção, então a "
-        "taxa do município pode diferir em alguns décimos.",
+        f"(perfil_comparecimento_abstencao), arquivo gerado em {gerado}, a base do painel oficial de "
+        f"comparecimento do TSE. {DIFERENCA_BASES}",
     ]
     lista = "".join(f"<li>{item}</li>" for item in itens)
     return ui.html(
@@ -228,7 +288,7 @@ def render():
             mun["nm_municipio"], ano, turno, tot, perfil.grupos(df, "faixa_etaria"),
             perfil.grupos(df, "genero"), perfil.grupos(df, "escolaridade"), historico_txt,
         ),
-        anima=anima, i=2, rotulo="O que os dados revelam?",
+        anima=anima, i=2, rotulo="O que os dados revelam?", visiveis=3,
     )
     ui.mostrar(f'<div class="grade-abstencao">{heroi}{leitura}</div>')
     ui.mostrar(
@@ -236,12 +296,12 @@ def render():
         "Mostram onde a ausência foi maior ou menor, não por que as pessoas deixaram de votar.</div>"
     )
 
-    _idade(df, anima)
+    _idade(df, mun["nm_municipio"], anima)
     genero, escolaridade = st.columns([2, 3], gap="large")
     with genero:
-        ui.mostrar(_cartao_html(df, "genero", "Por gênero", anima, 3))
+        ui.mostrar(_genero(df, anima))
     with escolaridade:
-        ui.mostrar(_cartao_html(df, "escolaridade", "Por escolaridade", anima, 4))
+        _escolaridade(df)
     _comparacao(mun, turno, historico)
     ui.mostrar(_nota_metodologica(df))
     ui.rodape()

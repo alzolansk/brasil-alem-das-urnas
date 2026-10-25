@@ -1,5 +1,5 @@
 {
-  "executado_em": "2026-10-25T20:47:42.290047+00:00",
+  "executado_em": "2026-10-25T21:02:03.695344+00:00",
   "fontes": {
     "2022": {
       "arquivo": "data/raw/tse/perfil_comparecimento_abstencao/perfil_2022.zip",
@@ -26,7 +26,7 @@
   "mart": {
     "arquivo": "data/marts/mart_perfil_abstencao.parquet",
     "linhas": 558356,
-    "sha256": "aa36fd540c152a29b48f3e95d625ebd3fe37c3090fc93c48e86ed9fcdd4893e0"
+    "sha256": "a631083af30bbacce133023807c7caaad0500dadc8b6b24cb31503c04d3f4cf2"
   },
   "problemas": [],
   "totais_brasil_com_exterior_vs_painel_tse": [

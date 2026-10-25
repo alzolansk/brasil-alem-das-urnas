@@ -405,8 +405,17 @@ table.tab .base { color: var(--caption); } table.tab .comp { font-weight: 600; }
 
 .grade-abstencao { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 24px; }
 .grade-abstencao .heroi .comparacoes { grid-template-columns: minmax(0, 1fr); }
-.st-key-abstencao_idade, .st-key-abstencao_historico { border: 1px solid var(--border); border-radius: 12px; padding: 24px; gap: 20px !important; background: var(--bg); }
-.stApp :is(.st-key-abstencao_idade, .st-key-abstencao_historico, .nota-metodo, .cartao-grupos) h2 { font-size: 22px; font-weight: 700; line-height: 1.3; margin: 0; padding: 0; }
+.st-key-abstencao_idade, .st-key-abstencao_historico, .st-key-abstencao_escolaridade { border: 1px solid var(--border); border-radius: 12px; padding: 24px; gap: 20px !important; background: var(--bg); }
+.stApp :is(.st-key-abstencao_idade, .st-key-abstencao_historico, .st-key-abstencao_escolaridade) [data-testid="stCheckbox"] label p { font-size: 14px !important; font-weight: 600; color: var(--muted); }
+/* "O que os dados revelam?": 3 itens à vista, o resto em <details> */
+.escuro details.mais > ol { margin-top: 16px; }
+.escuro details.mais summary { min-height: 44px; display: inline-flex; align-items: center; gap: 10px; cursor: pointer; list-style: none; color: #fff; font-size: 15px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; width: fit-content; }
+.escuro details.mais summary::-webkit-details-marker { display: none; }
+.escuro details.mais summary::before { content: ""; width: 7px; height: 7px; border-right: 2px solid var(--yellow); border-bottom: 2px solid var(--yellow); transform: rotate(-45deg); transition: transform .15s; }
+.escuro details.mais[open] summary::before { transform: rotate(45deg); }
+.escuro details.mais .ver-menos, .escuro details.mais[open] .ver-mais { display: none; }
+.escuro details.mais[open] .ver-menos { display: inline; }
+.stApp :is(.st-key-abstencao_idade, .st-key-abstencao_historico, .st-key-abstencao_escolaridade, .nota-metodo, .cartao-grupos) h2 { font-size: 22px; font-weight: 700; line-height: 1.3; margin: 0; padding: 0; }
 .cartao-grupos { height: 100%; }
 
 /* barras por grupo: rótulo e tamanho do grupo | trilho 0–100% com a média | taxa */
@@ -438,7 +447,7 @@ table.tab th.total { font-weight: 700; }
   .grade-abstencao { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 640px) {
-  .st-key-abstencao_idade, .st-key-abstencao_historico { padding: 20px 16px; }
+  .st-key-abstencao_idade, .st-key-abstencao_historico, .st-key-abstencao_escolaridade { padding: 20px 16px; }
   .st-key-abstencao_eleicao [role="radiogroup"] { display: grid; grid-template-columns: 1fr 1fr; width: 100%; border-radius: 22px; }
   .st-key-abstencao_eleicao [role="radiogroup"] label { justify-content: center; padding: 0 8px; }
   :is(.st-key-abstencao_ordem, .st-key-abstencao_hist_dim) { justify-content: flex-start; }

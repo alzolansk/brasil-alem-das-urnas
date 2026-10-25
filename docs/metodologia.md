@@ -60,7 +60,7 @@ Nenhuma.
 
 ## Limitações
 - A abstenção inclui eleitores que morreram ou mudaram de domicílio e ainda constam no cadastro, o que infla a taxa sobretudo onde o cadastro está desatualizado.
-- O voto é facultativo para quem tem 16–17 anos ou mais de 70, o que afeta a comparação entre municípios com perfis de idade diferentes.
+- O voto é facultativo para quem tem 16–17 anos, para quem tem 70 anos ou mais e para analfabetos (Constituição, art. 14, § 1º, II), o que afeta a comparação entre municípios com perfis de idade diferentes.
 - Os resultados descrevem o comportamento agregado, não as razões individuais do voto ou da abstenção.
 
 ## Quem ficou em casa? (abstenção por perfil do eleitor)
@@ -85,8 +85,9 @@ Em todas as linhas dos dois anos, `QT_APTOS = QT_COMPARECIMENTO + QT_ABSTENCAO` 
 
 ### Categorias (oficiais do TSE, sem reagrupamento)
 - **Gênero:** Feminino, Masculino, além de "Não informado" (23.336 eleitores no total nacional com exterior, em 2026). É o campo "gênero" do cadastro. O campo de identidade de gênero ficou de fora: em 2022 está todo "não informado" e em 2026, em 79% dos eleitores.
-- **Faixa etária:** 16, 17, 18, 19 e 20 anos isolados; depois 21 a 24, 25 a 29 … 95 a 99 anos e 100 anos ou mais (22 faixas), além de "Inválido" (1.212 eleitores no total nacional, em 2026). Voto facultativo marcado para 16, 17 e 70 anos ou mais (Constituição, art. 14).
-- **Escolaridade:** Analfabeto, Lê e escreve, Ensino fundamental incompleto/completo, Ensino médio incompleto/completo, Superior incompleto/completo, além de "Não informado".
+- **Faixa etária:** 16, 17, 18, 19 e 20 anos isolados; depois 21 a 24, 25 a 29 … 95 a 99 anos e 100 anos ou mais (22 faixas), além de "Inválido" (1.212 eleitores no total nacional, em 2026). Voto facultativo marcado para 16, 17 e 70 anos ou mais (Constituição, art. 14, § 1º, II). **Exceção:** analfabetos também têm voto facultativo, em qualquer idade. Por isso, as faixas de 18 a 69 anos não reúnem só quem é obrigado a votar; a tela fala em "faixas de 18 a 69 anos", nunca em "voto obrigatório".
+- **Escolaridade:** Analfabeto (marcado como voto facultativo), Lê e escreve, Ensino fundamental incompleto/completo, Ensino médio incompleto/completo, Superior incompleto/completo, além de "Não informado".
+- **Filtros de voto facultativo:** nas seções de faixa etária, de escolaridade e da comparação, um interruptor mostra ou oculta os grupos de voto facultativo (16, 17 e 70 anos ou mais; analfabetos). Ocultar muda só o que aparece no gráfico e nos destaques "Maior/Menor taxa". A média do município continua com todos os eleitores, e a tela informa quantos eleitores estão ocultos.
 - "Não informado" e "Inválido" ficam **fora dos gráficos e dos textos**, mas **dentro do total** do município. A tela diz quantos eleitores estão nessa situação.
 - As categorias informadas são **idênticas em 2022 e 2026**, conferidas pelo pipeline. Por isso a comparação entre os anos é feita grupo a grupo, no mesmo turno.
 
@@ -107,19 +108,24 @@ A estrutura do arquivo permitiria cruzar dimensões (por exemplo, idade × escol
 - Municípios sem 2022 (Boa Esperança do Norte/MT) não têm comparação. O 2º turno só é comparado quando houver o perfil do 2º turno de 2026.
 
 ### "O que os dados revelam?"
-Frases montadas por regras fixas (`app/lib/narrativa.py`, função `revelam`), sem IA. Na ordem:
-1. Taxa e número de pessoas ausentes no município.
-2. Faixa etária com a maior taxa (com o tamanho do grupo). Se ela for de voto facultativo, outra frase traz a maior e a menor taxa entre 18 e 69 anos; se não, a menor taxa.
-3. Feminino × masculino: diferença em p.p. ou "praticamente igual" (menos de 0,5 p.p.).
-4. Escolaridade com a maior taxa e sua distância da média municipal, além da menor taxa.
-5. Com 2022 disponível: variação total, maior alta e maior queda entre os grupos comparáveis das três dimensões.
+Frases montadas por regras fixas (`app/lib/narrativa.py`, função `revelam`), sem IA. No máximo **6 frases**: a tela mostra as **3 primeiras** e as outras em "Ver mais". A ordem de prioridade é:
+1. Taxa e número de pessoas ausentes no município, com a taxa da outra eleição, quando houver.
+2. Maior e menor taxa entre as faixas de 18 a 69 anos (os jovens adultos costumam aparecer aqui).
+3. Com 2022 disponível: o grupo com a maior alta desde 2022.
+4. Escolaridade com a maior taxa e sua distância da média municipal, além da menor taxa. Se a maior for a de analfabetos, a frase lembra que eles têm voto facultativo.
+5. Feminino × masculino: diferença em p.p. ou "praticamente igual" (menos de 0,5 p.p.).
+6. Com 2022 disponível: o grupo com a maior queda.
+7. Maior taxa nas idades de voto facultativo, descrita como "registros de eleitores … no cadastro eleitoral", só quando supera a das faixas de 18 a 69 anos.
+8. Aviso de comparação indisponível (2º turno de 2026 não publicado, ou município sem 2022).
+
+As frases que não couberem nas 6 ficam de fora; os números continuam nos gráficos e nas tabelas.
 
 Empates ficam com a primeira categoria na ordem oficial. As frases descrevem onde a ausência foi maior ou menor. Nunca atribuem motivos, e um teste barra palavras como "porque", "devido" e "motivo".
 
 ### Diferença para as outras telas
-As outras telas usam `detalhe_votacao_munzona` (resultados por seção). Em cada município, as duas bases do TSE têm aptos ligeiramente diferentes, mas somam o mesmo total no Brasil: 156.454.011 em 2022 e 158.745.463 em 2026. A abstenção difere em 0,02 p.p. na mediana; no 99º percentil, até 0,4 p.p.; no máximo, 3,4 p.p. (Melgaço/PA, 2022, 2º turno). Por isso, a taxa do município nesta tela pode diferir em alguns décimos da do Explore. Grupos e média vêm sempre da mesma base, e a tela avisa isso. Detalhes em `docs/validacao.md` e `docs/validacao/perfil_execucao.json`.
+As outras telas usam `detalhe_votacao_munzona` (resultados por seção). Em cada município, as duas bases do TSE têm aptos ligeiramente diferentes, mas somam o mesmo total no Brasil: 156.454.011 em 2022 e 158.745.463 em 2026. A abstenção difere em 0,02 p.p. na mediana; no 99º percentil, até 0,4 p.p.; no máximo, 3,4 p.p. (Melgaço/PA, 2022, 2º turno). Por isso, a tela avisa: "As taxas podem diferir entre as bases; normalmente a diferença é pequena, mas há exceções." Grupos e média vêm sempre da mesma base. Detalhes em `docs/validacao.md` e `docs/validacao/perfil_execucao.json`.
 
 ### Limitações específicas
 - Os indicadores descrevem **grupos agregados** de eleitores e não permitem identificar comportamentos individuais.
-- A abstenção das faixas mais velhas é inflada por eleitores que morreram e ainda constam no cadastro (por exemplo, há 4.361 eleitores "de 100 anos ou mais" em Campinas em 2026, com 99,8% de abstenção).
+- As faixas mais altas reúnem muitos **registros no cadastro eleitoral**, com abstenção acima de 90%. São dados do CSV oficial do TSE, não erro de processamento: por exemplo, 48.821 registros de 100 anos ou mais em São Paulo e 4.361 em Campinas em 2026, com 99,8% de abstenção nos dois. O TSE não detalha a situação desses registros, então a tela não atribui o resultado a uma causa (como óbitos) e põe esse contexto junto do gráfico de idade.
 - Dimensões diferentes se sobrepõem (idade e escolaridade, por exemplo). Uma diferença entre grupos não isola o efeito de uma característica.
