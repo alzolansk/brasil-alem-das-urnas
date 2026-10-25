@@ -33,9 +33,12 @@ pip install -r requirements-dev.txt
 # App
 streamlit run app/Home.py
 
-# Pipeline (requer gcloud auth application-default login)
-# ver sql/README.md para a ordem de execução
+# Pipeline completo (requer gcloud auth application-default login)
+python -m scripts.rebuild
+
+# 2º turno de 2026: verifica se o TSE já publicou
+python -m scripts.segundo_turno
 ```
 
 ## Status
-Fases 0-2 concluídas; Fase 3 (app) implementada, com aprovação visual e testes com pessoas pendentes. Ver [docs/planejamento.md](docs/planejamento.md). Plano e decisões pendentes em [docs/metodologia.md](docs/metodologia.md).
+Fases 0-2 concluídas; Fase 3 (app) implementada, com aprovação visual e testes com pessoas pendentes. Fase 4 preparada: 2º turno de 2026 entra com dois comandos e o deploy está descrito em [docs/publicacao.md](docs/publicacao.md). Ver [docs/planejamento.md](docs/planejamento.md). Plano e decisões pendentes em [docs/metodologia.md](docs/metodologia.md).

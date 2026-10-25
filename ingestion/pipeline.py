@@ -14,11 +14,16 @@ from ingestion.config import INTERIM, carregar_sources
 
 def executar(usar_ibge_api: bool = True, malha: bool = False) -> int:
     cfg = carregar_sources()["tse"]["detalhe_votacao_munzona"]
-    zonas = []
+    zonas, erros = [], []
     for ano in (2022, 2026):
         zip_path = download.arquivo_detalhe_votacao(ano)
         z = parse_tse.parse_zona(zip_path, ano)
-        z = z[z.turno.isin(cfg[ano]["turnos"])]
+        no_arquivo, pedidos = set(z.turno.unique()), set(cfg[ano]["turnos"])
+        for t in sorted(pedidos - no_arquivo):
+            erros.append(f"{ano}: turno {t} está em sources.yaml mas não no arquivo do TSE")
+        for t in sorted(no_arquivo - pedidos):
+            print(f"AVISO: {ano} turno {t} já está no arquivo do TSE; ative em sources.yaml")
+        z = z[z.turno.isin(pedidos)]
         print(f"{ano}: {len(z)} linhas de zona (turnos {sorted(z.turno.unique())})")
         zonas.append(z)
     zona = pd.concat(zonas, ignore_index=True)
@@ -29,7 +34,7 @@ def executar(usar_ibge_api: bool = True, malha: bool = False) -> int:
     municipio = parse_tse.agregar_municipio(zona)
     _, nao_casados = crosswalk.casar(municipio, dim)
 
-    erros = (
+    erros += (
         validate.validar_zona(zona)
         + validate.validar_municipios(municipio, nao_casados)
         + validate.validar_totais(zona)

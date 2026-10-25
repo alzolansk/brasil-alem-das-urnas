@@ -1,6 +1,7 @@
 """Layout base e componentes HTML do protótipo (docs/design/especificacao-fidelidade-prototipo.md)."""
 
 import base64
+from datetime import date
 from html import escape
 from pathlib import Path
 
@@ -162,10 +163,20 @@ def _logo() -> str:
     return base64.b64encode((ASSETS / "logo.svg").read_bytes()).decode()
 
 
+DATA_2T_2026 = date(2026, 10, 25)
+
+
+def segundo_turno_pendente() -> str:
+    """Texto do selo enquanto o 2º turno de 2026 não está nas marts."""
+    if date.today() <= DATA_2T_2026:
+        return "2º turno em 25/10"
+    return "2º turno em totalização"
+
+
 def _selo() -> str:
     if data.tem_dados(2026, 2):
         return etiqueta("Apuração concluída: 1º e 2º turnos 2026", "ok")
-    return etiqueta("1º turno 2026 apurado · 2º turno em 25/10", "aviso")
+    return etiqueta(f"1º turno 2026 apurado · {segundo_turno_pendente()}", "aviso")
 
 
 def cabecalho(ativa: str) -> None:

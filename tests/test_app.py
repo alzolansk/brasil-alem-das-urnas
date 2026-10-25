@@ -1,5 +1,6 @@
 """Fumaça do app com AppTest (sem GCP): cada tela abre, sem exceção, nos estados principais."""
 
+import pandas as pd
 import pytest
 from streamlit.testing.v1 import AppTest
 
@@ -8,8 +9,8 @@ from app.lib import charts, data, fmt, narrativa
 SAO_PAULO, LAGOA_DO_PIAUI = 3550308, 2205508
 
 
-def abrir(pagina="explore", municipio=SAO_PAULO):
-    def roteiro(pagina, municipio):
+def abrir(pagina="explore", municipio=SAO_PAULO, marts=None):
+    def roteiro(pagina, municipio, marts):
         import sys
         from pathlib import Path
 
@@ -17,13 +18,54 @@ def abrir(pagina="explore", municipio=SAO_PAULO):
 
         sys.path.insert(0, str(Path("app").resolve()))
         import navegacao
+        from lib import data as d
 
+        alvo = Path(marts) if marts else d.RAIZ / "data" / "marts"
+        if d.MARTS != alvo:  # o módulo e o cache sobrevivem entre os testes
+            d.MARTS = alvo
+            st.cache_data.clear()
         st.session_state.setdefault("cd_ibge", municipio)
         navegacao.executar(pagina)
 
     return AppTest.from_function(
-        roteiro, kwargs={"pagina": pagina, "municipio": municipio}, default_timeout=60
+        roteiro, kwargs={"pagina": pagina, "municipio": municipio, "marts": marts},
+        default_timeout=60,
     ).run()
+
+
+SEGUNDO_TURNO_2026 = data.tem_dados(2026, 2)
+sem_2t_2026 = pytest.mark.skipif(SEGUNDO_TURNO_2026, reason="2º turno de 2026 já carregado")
+
+
+@pytest.fixture(scope="module")
+def marts_com_2t(tmp_path_factory):
+    """Cópia das marts com um 2º turno 2026 simulado (= 1º turno), para testar a carga futura."""
+    destino = tmp_path_factory.mktemp("marts")
+    for nome in ("mart_zona_indicadores", "mart_municipio_indicadores",
+                 "mart_uf_brasil_indicadores", "mart_municipio_benchmark"):
+        df = pd.read_parquet(data.MARTS / f"{nome}.parquet")
+        df = df[~((df["ano"] == 2026) & (df["turno"] == 2))]
+        t2 = df[(df["ano"] == 2026) & (df["turno"] == 1)].assign(turno=2)
+        pd.concat([df, t2], ignore_index=True).to_parquet(destino / f"{nome}.parquet")
+    c = pd.read_parquet(data.MARTS / "mart_municipio_comparativo.parquet")
+    chave = ["sg_uf", "cd_municipio_tse"]
+    for tipo, ano_base, turno_base in (("turnos", 2026, 1), ("anos", 2022, 2)):
+        alvo = (c["tipo_comparacao"] == tipo) & (c["ano_base"] == ano_base) & (c["turno_base"] == turno_base)
+        if tipo == "turnos":  # 2º turno 2026 igual ao 1º
+            fonte = c[alvo].set_index(chave)[[f"{k}_pct_base" for k in data.INDICADORES] + ["aptos_base"]]
+        else:  # 2026 T2 = 2026 T1, que é a comparação do par anos/turno 1
+            base = (c["tipo_comparacao"] == "anos") & (c["turno_base"] == 1)
+            fonte = c[base].set_index(chave)[[f"{k}_pct_comparacao" for k in data.INDICADORES] + ["aptos_comparacao"]]
+        fonte.columns = [f"{k}_pct_comparacao" for k in data.INDICADORES] + ["aptos_comparacao"]
+        linhas = c[alvo].set_index(chave)
+        linhas.update(fonte)
+        for k in data.INDICADORES:
+            linhas[f"{k}_delta_pp"] = linhas[f"{k}_pct_comparacao"] - linhas[f"{k}_pct_base"]
+        linhas["aptos_variacao_pct"] = 100 * (linhas["aptos_comparacao"] - linhas["aptos_base"]) / linhas["aptos_base"]
+        linhas["status_comparacao"] = "disponivel"
+        c = pd.concat([c[~alvo], linhas.reset_index()[c.columns]], ignore_index=True)
+    c.to_parquet(destino / "mart_municipio_comparativo.parquet")
+    return str(destino)
 
 
 TELAS = ["explore", "comparativo", "mapa", "brasil", "metodologia", "dicionario", "dados",
@@ -54,6 +96,7 @@ def test_busca_sem_resultado_sugere_parecidos():
     assert data.parecidos("Sao Paulu")
 
 
+@sem_2t_2026
 def test_segundo_turno_2026_aguardando():
     at = abrir("explore")
     at.radio(key="explore_eleicao").set_value((2026, 2)).run()
@@ -207,6 +250,7 @@ def test_inclinacao_mostra_so_2022_e_2026():
     assert all(list(t.x) == [0, 1] for t in fig.data)
 
 
+@sem_2t_2026
 def test_brasil_segundo_turno_2026_aguardando():
     at = abrir("brasil")
     at.selectbox(key="brasil_eleicao").set_value((2026, 2)).run()
@@ -218,3 +262,40 @@ def test_app_sem_caminho_abre_o_explore():
     at = AppTest.from_file("app/Home.py", default_timeout=60).run()
     assert not at.exception, [e.value for e in at.exception]
     assert any("<h1>Explore seu município</h1>" in m.value for m in at.markdown)
+
+
+@pytest.mark.parametrize("pagina,chave", [("explore", "explore_eleicao"), ("brasil", "brasil_eleicao"),
+                                          ("mapa", "mapa_eleicao")])
+def test_segundo_turno_2026_carregado_aparece_sem_mudar_codigo(marts_com_2t, pagina, chave):
+    at = abrir(pagina, marts=marts_com_2t)
+    widget = at.radio(key=chave) if pagina == "explore" else at.selectbox(key=chave)
+    widget.set_value((2026, 2)).run()
+    assert not at.exception, [e.value for e in at.exception]
+    assert not any("Aguardando apuração" in m.value for m in at.markdown)
+    assert any("Apuração concluída" in m.value for m in at.markdown)
+
+
+def test_comparativo_com_segundo_turno_2026(marts_com_2t):
+    at = abrir("comparativo", marts=marts_com_2t)
+    assert not at.exception, [e.value for e in at.exception]
+    html = " ".join(m.value for m in at.markdown)
+    assert html.count("Apuração concluída") >= 3  # selo do topo + 2022 + 2026
+    assert "aparecem aqui automaticamente" not in html
+
+
+def test_selo_pendente_muda_depois_do_dia_da_eleicao(monkeypatch):
+    from datetime import date
+
+    from app.lib import ui
+
+    class Hoje(date):
+        dia = date(2026, 10, 25)
+
+        @classmethod
+        def today(cls):
+            return cls.dia
+
+    monkeypatch.setattr(ui, "date", Hoje)
+    assert ui.segundo_turno_pendente() == "2º turno em 25/10"
+    Hoje.dia = date(2026, 10, 26)
+    assert ui.segundo_turno_pendente() == "2º turno em totalização"

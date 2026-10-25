@@ -2,6 +2,14 @@ import pandas as pd
 import pytest
 
 from ingestion import crosswalk, download, parse_tse, validate
+from ingestion.config import RAIZ, carregar_sources
+
+_CFG = carregar_sources()["tse"]["detalhe_votacao_munzona"]
+# data/raw/ não vai para o git: no CI (sem os zips do TSE) estes testes são pulados.
+pytestmark = pytest.mark.skipif(
+    not all((RAIZ / _CFG[a]["arquivo_local"]).exists() for a in (2022, 2026)),
+    reason="arquivos brutos do TSE ausentes em data/raw/ (rode python -m ingestion.download)",
+)
 
 
 @pytest.fixture(scope="module")

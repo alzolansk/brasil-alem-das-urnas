@@ -13,8 +13,7 @@ TEXTOS = {
     "dados": """
 ## Sobre os dados
 
-- **Eleições:** Presidente da República, 1º e 2º turnos de 2022 e 1º turno de 2026. O 2º turno de 2026
-  entra quando o TSE publicar os resultados.
+- **Eleições:** Presidente da República, {eleicoes}.
 - **Fonte dos resultados:** Portal de Dados Abertos do TSE (detalhe da votação por município e zona).
 - **Municípios:** IBGE (códigos, regiões e malhas). Os votos do exterior ficam fora do mapa e dos
   municípios, mas entram no total do Brasil.
@@ -69,6 +68,13 @@ def _metodologia() -> str:
     return arquivo.read_text(encoding="utf-8") if arquivo.exists() else "## Metodologia"
 
 
+def _eleicoes() -> str:
+    if data.tem_dados(2026, 2):
+        return "1º e 2º turnos de 2022 e de 2026"
+    return ("1º e 2º turnos de 2022 e 1º turno de 2026. O 2º turno de 2026 entra quando o TSE "
+            "publicar os resultados")
+
+
 def pagina(chave: str):
     def render():
         ui.cabecalho(chave)
@@ -77,7 +83,8 @@ def pagina(chave: str):
         elif chave == "metodologia":
             texto = _metodologia()
         else:
-            texto = TEXTOS[chave].replace("{atualizacao}", data.ultima_atualizacao())
+            texto = (TEXTOS[chave].replace("{atualizacao}", data.ultima_atualizacao())
+                     .replace("{eleicoes}", _eleicoes()))
         st.markdown(texto)
         st.caption(AVISO)
         ui.rodape()

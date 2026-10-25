@@ -9,7 +9,7 @@ Arquivo criado em 25/10/2026: o repositório não tinha um documento de planejam
 | 0 e 1: estrutura e ingestão TSE/IBGE | Concluídas (commit `c590ce2`) |
 | 2: modelagem SQL e exportação das marts | **Concluída em 25/10/2026** |
 | 3: app Streamlit | **Implementada; redesenho de fidelidade ao protótipo feito em 25/10/2026. Pendentes: prints e aprovação visual (3.0), textos (3.7/3.8) e testes com pessoas (3.9)** |
-| 4 em diante | Não iniciadas |
+| 4: 2º turno 2026 e publicação | **Preparada em 25/10/2026**: 2º turno entra com 2 comandos, CI ativo. Pendentes (humano): dados do TSE, conferência, deploy e revisão final |
 
 ## Fase 2: o que está pronto
 - Staging (2 tabelas), intermediate (2) e marts (5) em `sql/`, executados no BigQuery Sandbox por `python -m scripts.modelagem`.
@@ -58,4 +58,30 @@ Contraste conferido por cálculo (WCAG): todos os pares da seção 8 passam (men
 8. Links HTML ("Início", logo, "Ver … em perspectiva") recarregam a página; o município e o alto contraste seguem pela URL (`?m=`, `&c=1`). As abas e o rodapé usam `st.page_link` e mantêm a sessão.
 9. A busca também aceita nome ou sigla de estado (lista os municípios dele), já que o placeholder do protótipo é "Buscar município ou estado".
 10. A fonte do Google Fonts carregada é o subconjunto latino; símbolos como ▲ ▼ − › usam a fonte de reserva do sistema.
-11. Não avancei para a Fase 4.
+11. Fase 4: ver abaixo.
+
+## Fase 4: 2º turno 2026 e publicação
+
+Status em 25/10/2026: preparada, aguardando o TSE e o deploy.
+| # | Status | Entrega |
+|---|---|---|
+| 4.1 | 🤖 automatizado / 🧑 rodar | `python -m scripts.segundo_turno` baixa o zip de 2026 numa pasta temporária e diz se o 2º turno de Presidente já está lá (exige 5.571 municípios e consistência). Com `--ativar`, troca o zip local e liga o turno 2 em `sources.yaml`. **Checado em 25/10/2026 ~15h: ainda não publicado** (arquivo do TSE de 24/10). |
+| 4.2 | 🤖 pronto / 🧑 executar | `python -m scripts.rebuild` = ingestão → `raw` → SQL + 11 testes → Parquet (para em qualquer falha antes de trocar os arquivos). O pipeline agora acusa erro se `sources.yaml` pede um turno que o arquivo não tem e avisa se o arquivo já tem um turno não ativado. SQL e app já tratavam o 2º turno sem mudança: comprovado por testes com 2º turno simulado (DuckDB e AppTest em Explore, Comparativo, Mapa e Brasil). |
+| 4.3 | 🧑 pendente | Repetir a conferência com o painel do TSE após a carga (e preencher a UF e o município em branco de `docs/validacao.md`). |
+| 4.4 | 🧑 pendente | Passo a passo em `docs/publicacao.md` (Streamlit Community Cloud, `app/Home.py`, Python 3.12, sem segredos). |
+| 4.5 | ✅ | `.github/workflows/ci.yml`: ruff + pytest em push/PR. Testes de ingestão são pulados quando `data/raw/` não existe (CI). |
+| 4.6 | 🟡 parcial | Capturas headless (Playwright + Chrome) a 1280 e 390 px: sem rolagem lateral. Revisão com pessoas (3.9) segue pendente. |
+| 4.7 | 🟡 parcial | O selo "Dados ilustrativos" já não existe no app. Textos que diziam "2º turno em 25/10" e "1º turno de 2026" agora dependem dos dados (e da data: a partir de 26/10 o selo diz "2º turno em totalização"). Revisão de neutralidade, licença e texto final das páginas do rodapé: humana. |
+
+### Intervenções humanas necessárias
+1. Rodar `python -m scripts.segundo_turno` nos próximos dias; quando der "PUBLICADO", `--ativar` + `python -m scripts.rebuild` (requer `gcloud auth application-default login`) + commit/push.
+2. Conferir o 2º turno contra o painel do TSE (4.3) e registrar em `docs/validacao.md`.
+3. Criar o app no Streamlit Community Cloud (4.4) e anotar a URL no README.
+4. Revisão final de conteúdo e design (4.6/4.7), aprovação dos modelos de frase (3.7) e testes com pessoas (3.9).
+
+### Problemas encontrados
+- O 2º turno de 2026 ainda não está no portal (esperado: eleição hoje). Nada foi carregado; as marts continuam só com o 1º turno de 2026.
+- A extensão Claude in Chrome não respondeu ("No group with id"); as capturas foram feitas com Playwright usando o Chrome instalado.
+- O CI não tem os zips do TSE (fora do git), então os 7 testes de ingestão só rodam localmente.
+- Saída dos scripts no terminal Git Bash do Windows mostra acentos trocados (codificação do console); o PowerShell e o CI não têm o problema.
+- Havia alterações não commitadas da Fase 3 (mapa de UFs pela malha do IBGE, `data/geo/malha_UF.geojson`): testes passam e foram commitadas à parte. `docs/design/loader/` não fazia parte da Fase 4 e ficou fora do commit.

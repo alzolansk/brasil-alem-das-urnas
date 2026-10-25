@@ -51,7 +51,7 @@ def cartao_turno(ano: int, c, anima: str, i: int) -> str:
         selo = ui.etiqueta("Apuração concluída", "ok")
         nota = narrativa.entre_turnos(ano, c["comparecimento_delta_pp"], c["brancos_nulos_delta_pp"])
     else:
-        selo = ui.etiqueta("2º turno em 25/10", "aviso")
+        selo = ui.etiqueta(ui.segundo_turno_pendente(), "aviso")
         nota = (f"Os dados do 2º turno de {ano} aparecem aqui automaticamente após a "
                 "totalização oficial.")
     return ui.html(
