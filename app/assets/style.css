@@ -41,7 +41,8 @@ a { color: var(--blue); } a:hover { color: var(--blue-hover); }
 .st-key-utilitaria [data-testid="stPageLink-NavLink"] { padding: 0; min-height: 32px; background: transparent !important; }
 .st-key-utilitaria [data-testid="stPageLink-NavLink"] p { color: var(--blue); font-size: 13px !important; text-decoration: underline; }
 .st-key-utilitaria [data-testid="stCheckbox"] label p { font-size: 13px !important; color: var(--blue); }
-.st-key-util_links { flex-wrap: nowrap !important; }
+/* o grupo de links não depende da chave util_links: o Cloud pode manter o ui.py antigo em memória */
+.st-key-utilitaria [data-testid="stHorizontalBlock"] { flex-wrap: nowrap !important; }
 .faixa { display: grid; grid-template-columns: 3fr 1fr 3fr; height: 4px; }
 .faixa i:nth-child(1) { background: var(--green); } .faixa i:nth-child(2) { background: var(--yellow); } .faixa i:nth-child(3) { background: var(--blue); }
 .st-key-cabecalho { padding: 16px var(--miolo) 0;
@@ -314,8 +315,8 @@ table.tab .base { color: var(--caption); } table.tab .comp { font-weight: 600; }
 }
 @media (max-width: 768px) {
   .st-key-utilitaria [data-testid="stElementContainer"]:has(.util-texto) { display: none; }
-  .st-key-util_links { width: 100% !important; gap: 12px !important; justify-content: space-between; }
-  .st-key-util_links [data-testid="stPageLink-NavLink"] { min-height: 32px; }
+  .st-key-utilitaria [data-testid="stHorizontalBlock"] { width: 100% !important; gap: 12px !important; justify-content: space-between; }
+  .st-key-utilitaria [data-testid="stHorizontalBlock"] [data-testid="stPageLink-NavLink"] { min-height: 32px; }
   :root { --gutter: 16px; }
   .util-texto { display: none; }
   .st-key-nav_desktop { display: none; }
