@@ -14,6 +14,8 @@
 
 /* ---- base e tipografia ---- */
 .stApp { background: var(--bg); color: var(--text); overflow-x: hidden; }
+/* 100vw (topo/rodapé) inclui a barra vertical e estoura a largura; quem rola é o stMain, não o .stApp */
+html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] { overflow-x: hidden !important; }
 .stApp, .stApp p, .stApp li, .stApp label, .stApp input, .stApp button,
 .stApp [data-testid="stMarkdownContainer"] { font-family: "Inter", system-ui, sans-serif; }
 h1, h2, h3, .titulo, .numero { font-family: "Raleway", "Inter", sans-serif !important; color: var(--navy); }
